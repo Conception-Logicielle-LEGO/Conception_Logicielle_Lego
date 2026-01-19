@@ -1,5 +1,6 @@
 import os
 
+
 class EnvironmentPrinter:
     SENSITIVE_KEYWORDS = {
         "password",
