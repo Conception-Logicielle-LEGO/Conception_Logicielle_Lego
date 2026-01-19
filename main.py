@@ -1,5 +1,4 @@
-import sys
-import logging
+from environment_printer import EnvironmentPrinter
 
-arguments = sys.argv
-logging.basicConfig(filename=arguments[1], encoding='utf-8', level=logging.DEBUG)
+if __name__ == "__main__":
+    EnvironmentPrinter.print_environment_variables()
