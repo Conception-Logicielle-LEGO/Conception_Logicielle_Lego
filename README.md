@@ -10,11 +10,16 @@ Avant de lancer l’application, assurez-vous de disposer des éléments suivant
 * **Python 3.11 ou supérieur**
 * **uv** installé et accessible depuis le terminal
 
+### optionnel : visualisation des diagrammes
+
+installer l'extension Mermaid Preview  v2.1.2 
+
 ---
 
 ### Création de l’environnement et installation des dépendances
 
-Depuis la racine du projet, exécutez les commandes suivantes :
+Depuis la racine du projet, exécutez les commandes suivantes;
+
 
 ```bash
 uv venv
