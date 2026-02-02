@@ -48,6 +48,13 @@ echo $PYTHONPATH
 ## Variables d'environnement :
 
 ```bash
-cp .env.example .env.local
+cp .env.template .env
 ```
 
+
+```bash
+python3 -m pip install --upgrade pip
+python3 -m pip --version
+python3 -m pip install requests
+python3 -m pip install -r requirements.txt
+```

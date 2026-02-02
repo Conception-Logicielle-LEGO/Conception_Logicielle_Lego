@@ -8,9 +8,8 @@ load_dotenv()
 
 # Configuration
 DB_FILE = "lego.duckdb"
-SCHEMA_FILE = "schema.sql"
 
-# URLs des fichiers CSV
+# URLs des fichiers CSV (zip)
 URLS = {
     'themes': os.getenv('URL_BDD_THEMES'),
     'colors': os.getenv('URL_BDD_COLORS'),
@@ -29,7 +28,7 @@ URLS = {
 
 def create_schema(conn):
     """Crée le schéma de la base de données depuis le fichier SQL"""
-    print("📝 Création du schéma...")
+    print(" Création du schéma...")
     
     # Lire le fichier SQL
     BASE_DIR = Path(__file__).resolve().parent
@@ -51,29 +50,12 @@ def create_schema(conn):
         return False
 
 
-# def read_rebrickable_csv(url):
-#     return f"""
-#         read_csv(
-#             '{url}',
-#             delim=',',
-#             header=true,
-#             compression='zip',
-#             null_padding=true
-#         )
-#     """
-
-
 def read_rebrickable_csv(url):
     return f"""
-        FROM read_csv(
-            'zip://{url}',
-            delim=',',
-            header=true,
-            null_padding=true
-        )
-    """
-
-
+        FROM read_csv_auto(
+        '{url}',
+        compression='gzip')    
+"""
 
 
 def load_data(conn):
@@ -129,26 +111,22 @@ def main():
     """Fonction principale"""
     print("INITIALISATION DE LA BASE DE DONNÉES LEGO")
     
-    # Connexion à DuckDB
+    # connexion à DuckDB
     print(f"\n Connexion à DuckDB ({DB_FILE})...")
     conn = duckdb.connect(DB_FILE)
     
-    # Installation et chargement de l'extension httpfs
     print(" Installation de l'extension httpfs...")
-    conn.execute("INSTALL httpfs")
-    conn.execute("LOAD httpfs")
+    conn.execute("INSTALL httpfs; LOAD httpfs")  # marche pour les gzip sans les télécharger (mieux que zipfs?)
     
-    # Créer le schéma
+    # créer le schéma 
     if not create_schema(conn):
         conn.close()
         return
     
-    # Charger les données
     load_data(conn)
     
     conn.close()
     
-    # Résumé
     print("✅ INITIALISATION TERMINÉE")
     print(f" Fichier créé: {DB_FILE}")
     print("\nPour utiliser la base:")
