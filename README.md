@@ -76,3 +76,30 @@ npm create vite@latest frontend
 
 
 Ignore files -> React -> Javascript -> no -> yes
+
+
+### Lancer l'application
+
+**Ouvrir 2 terminaux :**
+
+#### Terminal 1 - Backend (API)
+```bash
+cd ~/Conception_Logicielle_Lego
+uvicorn backend.app.api.fast_api:app --reload --port 8000
+```
+✅ Backend disponible sur : http://localhost:8000
+
+#### Terminal 2 - Frontend (Interface)
+```bash
+cd ~/Conception_Logicielle_Lego/frontend
+npm run dev
+```
+✅ Frontend disponible sur : http://localhost:5173
+
+### Vérification
+
+1. Ouvrir http://localhost:5173 dans le navigateur
+2. Vous devriez voir :
+   - Le header "🧱 LEGO Database Explorer"
+   - Les statistiques (Total Sets, Pièces, Thèmes)
+   - La liste des sets LEGO
