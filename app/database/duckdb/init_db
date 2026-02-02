@@ -1,0 +1,159 @@
+import duckdb
+import os
+from dotenv import load_dotenv
+from pathlib import Path
+
+
+load_dotenv()
+
+# Configuration
+DB_FILE = "lego.duckdb"
+SCHEMA_FILE = "schema.sql"
+
+# URLs des fichiers CSV
+URLS = {
+    'themes': os.getenv('URL_BDD_THEMES'),
+    'colors': os.getenv('URL_BDD_COLORS'),
+    'part_categories': os.getenv('URL_BDD_PART_CATEGORIES'),
+    'parts': os.getenv('URL_BDD_PARTS'),
+    'part_relationships': os.getenv('URL_BDD_PART_RELATIONSHIPS'),
+    'elements': os.getenv('URL_BDD_ELEMENTS'),
+    'sets': os.getenv('URL_BDD_SETS'),
+    'minifigs': os.getenv('URL_BDD_MINIFIGS'),
+    'inventories': os.getenv('URL_BDD_INVENTORIES'),
+    'inventory_parts': os.getenv('URL_BDD_INVENTORY_PARTS'),
+    'inventory_sets': os.getenv('URL_BDD_INVENTORY_SETS'),
+    'inventory_minifigs': os.getenv('URL_BDD_INVENTORY_MINIFIGS'),
+}
+
+
+def create_schema(conn):
+    """Crée le schéma de la base de données depuis le fichier SQL"""
+    print("📝 Création du schéma...")
+    
+    # Lire le fichier SQL
+    BASE_DIR = Path(__file__).resolve().parent
+    schema_path = BASE_DIR / "schema.sql"
+    if not schema_path.exists():
+        print(f"❌ Fichier schema.sql introuvable")
+        return False
+    
+    with open(schema_path, 'r') as f:
+        sql_commands = f.read()
+    
+    # Exécuter le schéma
+    try:
+        conn.execute(sql_commands)
+        print("✅ Schéma créé avec succès")
+        return True
+    except Exception as e:
+        print(f"❌ Erreur lors de la création du schéma: {e}")
+        return False
+
+
+# def read_rebrickable_csv(url):
+#     return f"""
+#         read_csv(
+#             '{url}',
+#             delim=',',
+#             header=true,
+#             compression='zip',
+#             null_padding=true
+#         )
+#     """
+
+
+def read_rebrickable_csv(url):
+    return f"""
+        FROM read_csv(
+            'zip://{url}',
+            delim=',',
+            header=true,
+            null_padding=true
+        )
+    """
+
+
+
+
+def load_data(conn):
+    """Charge les données depuis les URLs"""
+    print("\n Chargement des données depuis les URLs...")
+    tables_order = [
+        'themes', 'colors', 'part_categories', 'parts', 
+        'part_relationships', 'elements', 'sets', 'minifigs',
+        'inventories', 'inventory_parts', 'inventory_sets', 'inventory_minifigs'
+    ]  # garder l'ordre d'import pour les contraintes foreign key
+    
+    for table in tables_order:
+        if table not in URLS or not URLS[table]:
+            print(f"⚠️  URL manquante pour {table}")
+            continue
+        
+        try:
+            print(f"  {table:20} ...", end=" ")
+            
+            if table == 'inventory_parts':
+                conn.execute(f"""
+                    INSERT INTO {table}
+                    SELECT inventory_id, part_num, color_id, quantity, is_spare
+                    {read_rebrickable_csv(URLS[table])}
+                """)
+            elif table == 'elements':
+                conn.execute(f"""
+                    INSERT INTO {table}
+                    SELECT element_id, part_num, color_id
+                    {read_rebrickable_csv(URLS[table])}
+                """)
+            elif table == 'parts':
+                conn.execute(f"""
+                    INSERT INTO {table}
+                    SELECT part_num, name, part_cat_id
+                    {read_rebrickable_csv(URLS[table])}
+                """)
+            else:
+                conn.execute(f"""
+                    INSERT INTO {table}
+                    SELECT * 
+                    {read_rebrickable_csv(URLS[table])}
+                """)
+            
+            count = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            print(f"✅ {count:,} lignes")
+            
+        except Exception as e:
+            print(f"❌ Erreur: {e}")
+
+
+def main():
+    """Fonction principale"""
+    print("INITIALISATION DE LA BASE DE DONNÉES LEGO")
+    
+    # Connexion à DuckDB
+    print(f"\n Connexion à DuckDB ({DB_FILE})...")
+    conn = duckdb.connect(DB_FILE)
+    
+    # Installation et chargement de l'extension httpfs
+    print(" Installation de l'extension httpfs...")
+    conn.execute("INSTALL httpfs")
+    conn.execute("LOAD httpfs")
+    
+    # Créer le schéma
+    if not create_schema(conn):
+        conn.close()
+        return
+    
+    # Charger les données
+    load_data(conn)
+    
+    conn.close()
+    
+    # Résumé
+    print("✅ INITIALISATION TERMINÉE")
+    print(f" Fichier créé: {DB_FILE}")
+    print("\nPour utiliser la base:")
+    print(f"  import duckdb")
+    print(f"  conn = duckdb.connect('{DB_FILE}')")
+
+if __name__ == "__main__":
+    main()

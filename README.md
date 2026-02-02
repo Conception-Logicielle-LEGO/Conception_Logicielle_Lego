@@ -20,8 +20,34 @@ installer l'extension Mermaid Preview  v2.1.2
 
 Depuis la racine du projet, exécutez les commandes suivantes;
 
-
 ```bash
 uv venv
 uv sync
 ```
+
+## Requirements :
+### run :
+```bash
+pip install -r requirements.txt
+```
+
+## setup pythonpath
+### run (dans le terminal) :
+
+```bash
+export PYTHONPATH=$(pwd)/app
+```
+
+### vérifier avec :
+
+```bash
+echo $PYTHONPATH
+```
+
+
+## Variables d'environnement :
+
+```bash
+cp .env.example .env.local
+```
+
