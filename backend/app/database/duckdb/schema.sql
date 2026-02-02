@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS inventories (
     id INTEGER PRIMARY KEY,
     version INTEGER,
     set_num VARCHAR(20),
-    FOREIGN KEY (set_num) REFERENCES sets(set_num)
+    -- retrait de la foreign key : FOREIGN KEY (set_num) REFERENCES sets(set_num)
 );
 
 CREATE TABLE IF NOT EXISTS inventory_parts (
