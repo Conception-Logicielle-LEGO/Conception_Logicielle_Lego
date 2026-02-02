@@ -9,7 +9,7 @@ load_dotenv()
 # Configuration
 DB_FILE = "lego.duckdb"
 
-# URLs des fichiers CSV (zip)
+# URLs des fichiers CSV (gzip)
 URLS = {
     'themes': os.getenv('URL_BDD_THEMES'),
     'colors': os.getenv('URL_BDD_COLORS'),
@@ -129,7 +129,7 @@ def main():
     
     print("✅ INITIALISATION TERMINÉE")
     print(f" Fichier créé: {DB_FILE}")
-    print("\nPour utiliser la base:")
+    print("\n Pour utiliser la base:")
     print(f"  import duckdb")
     print(f"  conn = duckdb.connect('{DB_FILE}')")
 
