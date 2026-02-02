@@ -67,3 +67,12 @@ Copier la template dans un fichier .env
 cp .env.template .env
 ```
 
+
+
+# Mise en place frontend
+
+npm install -g create-vite
+npm create vite@latest frontend
+
+
+Ignore files -> React -> Javascript -> no -> yes
