@@ -4,15 +4,12 @@ from database.connexion import db_connection
 
 
 class UserDAO:
-    def create_user(self, username, password) -> User | None:
+    def create_user(self, user: User) -> User | None:
         """
         Créer un nouvel utilisateur dans la base de données
         ------------
         Paramètres
-        username
-            string: username du nouvel utilisateur. Doit être unique
-        password
-            string: Mot de passe déjà hashé du nouvel utilisateur
+        user : utilisateur de type User sans id_user
 
         Renvoie
         un objet de type user avec l'id_user crée par la bdd
@@ -21,13 +18,18 @@ class UserDAO:
             try:
                 cursor = conn.execute(
                     """
-                    INSERT INTO users (username, password) VALUES (?, ?)
+                    INSERT INTO users (username, password, salt) VALUES (?, ?, ?)
                     RETURNING id_user
                 """,
-                    [username, password],
+                    [user.username, user.password, user.salt],
                 )
                 id_user = cursor.fetchone()[0]
-                return User(username=username, password=password, id_user=id_user)
+                return User(
+                    username=user.username,
+                    password=user.password,
+                    id_user=id_user,
+                    salt=user.salt,
+                )
             except Exception as e:
                 print(f"Error creating user: {e}")
                 return None
