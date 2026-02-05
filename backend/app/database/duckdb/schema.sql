@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS inventory_minifigs (
 -- Tables utilisateur (initialement vides)
 
 CREATE TABLE IF NOT EXISTS users (
-    id_user INTEGER PRIMARY KEY,
+    id_user SERIAL PRIMARY KEY,
     username VARCHAR(20),
     hashed_password VARCHAR(255)
 );
