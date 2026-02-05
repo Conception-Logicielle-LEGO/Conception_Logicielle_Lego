@@ -1,17 +1,21 @@
+from business_object.user import User
+
 from database.connexion import db_connection
-from typing import Optional
 
 
 class UserDAO:
-    def create_user(username, password) -> Optional[int]:
+    def create_user(self, username, password) -> User | None:
         """
-        Create a new user in the database.
+        Créer un nouvel utilisateur dans la base de données
         ------------
-        parameters
+        Paramètres
         username
-            string: The username of the new user. Must be unique.
+            string: username du nouvel utilisateur. Doit être unique
         password
-            string: The password for the new user.
+            string: Mot de passe déjà hashé du nouvel utilisateur
+
+        Renvoie
+        un objet de type user avec l'id_user crée par la bdd
         """
         with db_connection(read_only=False) as conn:
             try:
@@ -22,44 +26,41 @@ class UserDAO:
                 """,
                     [username, password],
                 )
-                return cursor.fetchone()[0]
+                id_user = cursor.fetchone()[0]
+                return User(username=username, password=password, id_user=id_user)
             except Exception as e:
                 print(f"Error creating user: {e}")
                 return None
 
-    def delete_user(id_user):
+    def delete_user(self, id_user):
         """
-        Delete a user from the database by their ID.
+        Supprime un utilisateur à partir de son id_user
 
-        parameters:
+        Paramètre:
         ------------
         id_user
-            int: The ID of the user to delete.
-        Example:
-            >>> delete_user(1)
-            User with ID 1 deleted.
+            int: id de l'utilisateur à supprimer
         """
         with db_connection(read_only=False) as conn:
             conn.execute("DELETE FROM users WHERE id_user = ?", [id_user])
 
-    def get_user(username=None, id_user=None) -> Optional[tuple]:
+    def get_user(self, username=None, id_user=None) -> User | None:
         """
-        Get a user by either username or id_user. At least one of the parameters
-        must be provided.
+        Récupère un utilisateur à partir de son username ou id_user. Au moins l'un des deux paramètres doit
+        être renseigné
 
-        parameters:
+        Paramètres
         ------------
 
         username
-            string: The username of the user to retrieve.
-            Optional if id_user is provided.
+            string: username de l'utilisateur à renvoyer
         id_user
-            int: The ID of the user to retrieve. Optional if username is provided.
+            int: id de l'utilisateur à renvoyer.
 
-        returns:
+        Renvoie:
         ------------
-        tuple: A tuple containing the user's information (id_user, username, password)
-        or None if the user is not found.
+        un objet de type User avec les informations de l'utilisateur
+        ou None si l'utilisateur n'est pas trouvé
 
         """
         if username is None and id_user is None:
@@ -79,18 +80,70 @@ class UserDAO:
                 """,
                     [id_user],
                 ).fetchone()
-            return result
+            id_user = result["id_user"]
+            username = result["username"]
+            password = result["password"]
+            return User(username=username, id_user=id_user, password=password)
+
+    def update_user(self, update_username: bool, new_entry, id_user):
+        """
+        DAO pour changer soit le username soit le mot de passe d'un utilisateur connecté
+
+        Paramètres :
+        update_username : bool pour savoir si on update le username ou le mot de passe
+        new_entry : nouvelle entrée (ie nouveau username ou mot de passe déjà hashé)
+        id_user : int
+
+        Return :
+        True si succès, False si echec
+        """
+        with db_connection() as conn:
+            if update_username:
+                result = conn.execute(
+                    """
+                    UPDATE users
+                    SET username = ?
+                    WHERE id_user = ?
+                    RETURNING id_user;""",
+                    [new_entry, id_user],
+                ).fetchone()
+            else:
+                result = conn.execute(
+                    """
+                    UPDATE users
+                    SET password = ?
+                    WHERE id_user = ?
+                    RETURNING id_user;""",
+                    [new_entry, id_user],
+                ).fetchone
+        return result is not None
+
+    def is_username_taken(self, username):
+        """
+        Vérifie si un username est déjà utilisé
+        Utile pour assurer l'unicité des usernames lors de l'inscription ou modification de profil des utilisateurs
+
+        Paramètre :
+        username : nom d'utilisateur à tester
+
+        Renvoie :
+        False si le nom est libre, True s'il est occupé"""
+        with db_connection() as conn:
+            result = conn.execute(
+                """SELECT * FROM users WHERE username = %s;""", [username]
+            ).fetchone()
+            return result is not None
 
     # TODO: à déplacer dans autres DAO ?
 
-    def get_owned_sets(id_user):
+    def get_owned_sets(self, id_user):
         pass
 
-    def get_wishlist(id_user):
+    def get_wishlist(self, id_user):
         pass
 
-    def add_owned_set(id_user, set_num):
+    def add_owned_set(self, id_user, set_num):
         pass
 
-    def add_wishlist(id_user, piece_num):
+    def add_wishlist(self, id_user, piece_num):
         pass
