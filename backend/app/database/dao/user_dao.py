@@ -1,9 +1,10 @@
 from business_object.user import User
 
-from database.connexion import db_connection
-
 
 class UserDAO:
+    def __init__(self, db_connection):
+        self.conn = db_connection(read_only=False)
+
     def create_user(self, user: User) -> User | None:
         """
         Créer un nouvel utilisateur dans la base de données
@@ -14,7 +15,7 @@ class UserDAO:
         Renvoie
         un objet de type user avec l'id_user crée par la bdd
         """
-        with db_connection(read_only=False) as conn:
+        with self.conn as conn:
             try:
                 cursor = conn.execute(
                     """
@@ -43,8 +44,7 @@ class UserDAO:
         id_user
             int: id de l'utilisateur à supprimer
         """
-        with db_connection(read_only=False) as conn:
-            conn.execute("DELETE FROM users WHERE id_user = ?", [id_user])
+        self.conn.execute("DELETE FROM users WHERE id_user = ?", [id_user])
 
     def get_user(self, username=None, id_user=None) -> User | None:
         """
@@ -67,25 +67,24 @@ class UserDAO:
         """
         if username is None and id_user is None:
             raise ValueError("Either username or id_user must be provided.")
-        with db_connection() as conn:
-            if username is not None:
-                result = conn.execute(
-                    """
-                    SELECT * FROM users WHERE username = ?
+        if username is not None:
+            result = self.conn.execute(
+                """
+                SELECT * FROM users WHERE username = ?
                 """,
-                    [username],
-                ).fetchone()
-            else:
-                result = conn.execute(
-                    """
-                    SELECT * FROM users WHERE id_user = ?
+                [username],
+            ).fetchone()
+        else:
+            result = self.conn.execute(
+                """
+                SELECT * FROM users WHERE id_user = ?
                 """,
-                    [id_user],
-                ).fetchone()
-            id_user = result["id_user"]
-            username = result["username"]
-            password = result["password"]
-            return User(username=username, id_user=id_user, password=password)
+                [id_user],
+            ).fetchone()
+        id_user = result["id_user"]
+        username = result["username"]
+        password = result["password"]
+        return User(username=username, id_user=id_user, password=password)
 
     def update_user(self, update_username: bool, new_entry, id_user):
         """
@@ -99,25 +98,24 @@ class UserDAO:
         Return :
         True si succès, False si echec
         """
-        with db_connection() as conn:
-            if update_username:
-                result = conn.execute(
-                    """
-                    UPDATE users
-                    SET username = ?
-                    WHERE id_user = ?
-                    RETURNING id_user;""",
-                    [new_entry, id_user],
-                ).fetchone()
-            else:
-                result = conn.execute(
-                    """
-                    UPDATE users
-                    SET password = ?
-                    WHERE id_user = ?
-                    RETURNING id_user;""",
-                    [new_entry, id_user],
-                ).fetchone
+        if update_username:
+            result = self.conn.execute(
+                """
+                UPDATE users
+                SET username = ?
+                WHERE id_user = ?
+                RETURNING id_user;""",
+                [new_entry, id_user],
+            ).fetchone()
+        else:
+            result = self.conn.execute(
+                """
+                UPDATE users
+                SET password = ?
+                WHERE id_user = ?
+                RETURNING id_user;""",
+                [new_entry, id_user],
+            ).fetchone
         return result is not None
 
     def is_username_taken(self, username):
@@ -130,11 +128,10 @@ class UserDAO:
 
         Renvoie :
         False si le nom est libre, True s'il est occupé"""
-        with db_connection() as conn:
-            result = conn.execute(
-                """SELECT * FROM users WHERE username = %s;""", [username]
-            ).fetchone()
-            return result is not None
+        result = self.conn.execute(
+            """SELECT * FROM users WHERE username = %s;""", [username]
+        ).fetchone()
+        return result is not None
 
     # TODO: à déplacer dans autres DAO ?
 
