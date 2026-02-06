@@ -35,7 +35,7 @@ class UserDAO:
                 print(f"Error creating user: {e}")
                 return None
 
-    def delete_user(self, id_user):
+    def delete_user(self, id_user) -> bool:
         """
         Supprime un utilisateur à partir de son id_user
 
@@ -45,6 +45,12 @@ class UserDAO:
             int: id de l'utilisateur à supprimer
         """
         self.conn.execute("DELETE FROM users WHERE id_user = ?", [id_user])
+        try:
+            self.conn.execute("DELETE FROM users WHERE id_user = ?", [id_user])
+            return True
+        except Exception as e:
+            print(f"Error deleting user: {e}")
+            return False
 
     def get_user(self, username=None, id_user=None) -> User | None:
         """
@@ -86,7 +92,7 @@ class UserDAO:
         password = result["password"]
         return User(username=username, id_user=id_user, password=password)
 
-    def update_user(self, update_username: bool, new_entry, id_user):
+    def update_user(self, update_username: bool, new_entry, id_user) -> bool:
         """
         DAO pour changer soit le username soit le mot de passe d'un utilisateur connecté
 
@@ -118,7 +124,7 @@ class UserDAO:
             ).fetchone
         return result is not None
 
-    def is_username_taken(self, username):
+    def is_username_taken(self, username) -> bool:
         """
         Vérifie si un username est déjà utilisé
         Utile pour assurer l'unicité des usernames lors de l'inscription ou modification de profil des utilisateurs
@@ -133,16 +139,50 @@ class UserDAO:
         ).fetchone()
         return result is not None
 
-    # TODO: à déplacer dans autres DAO ?
+    def get_owned_sets(self, id_user: int) -> list[dict]:
+        """
+        Récupère tous les sets possédés par un utilisateur
 
-    def get_owned_sets(self, id_user):
-        pass
+        Paramètre:
+        id_user : int - id de l'utilisateur
+
+        Renvoie:
+        list[dict] : liste des sets avec informations (set_num)
+        """
+        try:
+            results = self.conn.execute(
+                """
+                SELECT set_num, 
+                FROM user_owned_sets
+                WHERE id_user = ?
+                """,
+                [id_user],
+            ).fetchall()
+            return [dict(row) for row in results]
+        except Exception as e:
+            print(f"Error getting owned sets: {e}")
+            return []
+
+# TODO: à déplacer dans autres DAO ?
 
     def get_wishlist(self, id_user):
+        pass
+
+    def get_owned_parts(self, id_user):
         pass
 
     def add_owned_set(self, id_user, set_num):
         pass
 
+    def delete_owned_set(self, id_user, set_num):
+        pass
+
     def add_wishlist(self, id_user, piece_num):
         pass
+
+    def delete_wishlist(self, id_user, piece_num):
+        pass
+
+    
+
+

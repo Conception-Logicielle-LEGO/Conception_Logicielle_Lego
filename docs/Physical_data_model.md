@@ -85,7 +85,27 @@ erDiagram
 		integer id_user ""
 		varchar(20) username ""
 		varchar(20) hashed_password ""
+		varchar(32) salt ""
 	}
+	
+	Wishlist {
+		integer id_wishlist ""
+		integer id_user ""
+	}
+	
+	Wishlist_parts {
+		integer id_wishlist ""
+		varchar(20) part_num ""
+		integer color_id ""
+		integer quantity ""
+	}
+	
+	Wishlist_sets {
+		integer id_wishlist ""
+		varchar(20) set_num ""
+		integer priority ""
+	}
+	
 	Favorite_sets {
 		integer id_user ""
 		varchar(20) set_num ""
@@ -115,11 +135,16 @@ erDiagram
 	Sets||--o{Inventory_sets:"has"
 	Sets||--o{Inventories:"has"
 	Themes||--o{Sets:"has"
+	Users||--o{Wishlist:"have"
+	Wishlist||--o{Wishlist_parts:"contains"
+	Wishlist||--o{Wishlist_sets:"contains"
+	Parts||--o{Wishlist_parts:"are"
+	Colors||--o{Wishlist_parts:"have"
+	Sets||--o{Wishlist_sets:"are"
 	Favorite_sets||--o{Users:"have"
 	User_owned_sets||--o{Users:"have"
 	User_parts||--o{Users:"have"
-	Sets ||--o{ Favorite_sets: "are"
-	Sets ||--o{ User_owned_sets: "are"
-	Parts ||--o{ User_parts: "are"
-
+	Sets||--o{Favorite_sets:"are"
+	Sets||--o{User_owned_sets:"are"
+	Parts||--o{User_parts:"are"
 ```
