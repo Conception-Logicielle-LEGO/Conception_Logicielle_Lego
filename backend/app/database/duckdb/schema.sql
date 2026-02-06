@@ -94,8 +94,10 @@ CREATE TABLE IF NOT EXISTS inventory_minifigs (
 
 -- Tables utilisateur (initialement vides)
 
+CREATE SEQUENCE IF NOT EXISTS users_id_seq;
+
 CREATE TABLE IF NOT EXISTS users (
-    id_user SERIAL PRIMARY KEY,
+    id_user INTEGER PRIMARY KEY DEFAULT nextval('users_id_seq'),
     username VARCHAR(20),
     hashed_password VARCHAR(255)
 );

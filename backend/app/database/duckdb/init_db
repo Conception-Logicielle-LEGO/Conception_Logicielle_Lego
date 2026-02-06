@@ -8,6 +8,7 @@ load_dotenv()
 
 # Configuration
 DB_FILE = "lego.duckdb"
+TEST_DB_FILE = "lego_test.duckdb"
 
 # URLs des fichiers CSV (gzip)
 URLS = {
@@ -155,7 +156,7 @@ def load_data(conn):
             print(f"❌ Erreur: {e}")
 
 
-def main():
+def main(Test=False):
     """Fonction principale"""
     print("INITIALISATION DE LA BASE DE DONNÉES LEGO")
     
