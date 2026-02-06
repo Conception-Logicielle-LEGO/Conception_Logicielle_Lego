@@ -61,6 +61,7 @@ def read_rebrickable_csv(url):
 def load_data(conn):
     """Charge les données depuis les URLs"""
     print("\n📥 Chargement des données depuis les URLs...")
+
     tables_order = [
         'themes', 'colors', 'part_categories', 'parts', 
         'part_relationships', 'elements', 'sets', 'minifigs',
@@ -104,13 +105,21 @@ def load_data(conn):
                 conn.execute(f"""
                     INSERT INTO {table}
                     SELECT rel_type, child_part_num, parent_part_num
-                    {read_rebrickable_csv(URLS[table])}
+                    FROM (
+                        {read_rebrickable_csv(URLS[table])}
+                    ) pr
+                    WHERE EXISTS (SELECT 1 FROM parts WHERE part_num = pr.child_part_num)
+                      AND EXISTS (SELECT 1 FROM parts WHERE part_num = pr.parent_part_num)
                 """)
             elif table == 'elements':
                 conn.execute(f"""
                     INSERT INTO {table}
                     SELECT element_id, part_num, color_id
-                    {read_rebrickable_csv(URLS[table])}
+                    FROM (
+                        {read_rebrickable_csv(URLS[table])}
+                    ) e
+                    WHERE EXISTS (SELECT 1 FROM parts WHERE part_num = e.part_num)
+                      AND EXISTS (SELECT 1 FROM colors WHERE id = e.color_id)
                 """)
             elif table == 'sets':
                 conn.execute(f"""
@@ -160,10 +169,14 @@ def main(Test=False):
     """Fonction principale"""
     print("INITIALISATION DE LA BASE DE DONNÉES LEGO")
     
-    # connexion à DuckDB
-    print(f"\n Connexion à DuckDB ({DB_FILE})...")
-    conn = duckdb.connect(DB_FILE)
-    
+    if Test is False:
+        # connexion à DuckDB
+        print(f"\n Connexion à DuckDB ({DB_FILE})...")
+        conn = duckdb.connect(DB_FILE)
+    else:
+        print(f"\n Connexion à DuckDB ({TEST_DB_FILE})...")
+        conn = duckdb.connect(TEST_DB_FILE)
+
     print(" Installation de l'extension httpfs...")
     conn.execute("INSTALL httpfs; LOAD httpfs")  # marche pour les gzip sans les télécharger (mieux que zipfs?)
     
@@ -175,12 +188,19 @@ def main(Test=False):
     load_data(conn)
     
     conn.close()
-    
-    print("✅ INITIALISATION TERMINÉE")
-    print(f" Fichier créé: {DB_FILE}")
-    print("\n Pour utiliser la base:")
-    print(f"  import duckdb")
-    print(f"  conn = duckdb.connect('{DB_FILE}')")
+    if Test is False:
+        print("✅ INITIALISATION TERMINÉE")
+        print(f" Fichier créé: {DB_FILE}")
+        print("\n Pour utiliser la base:")
+        print(f"  import duckdb")
+        print(f"  conn = duckdb.connect('{DB_FILE}')")
+    else :
+        print("✅ INITIALISATION TERMINÉE")
+        print(f" Fichier créé: {TEST_DB_FILE}")
+        print("\n Pour utiliser la base:")
+        print(f"  import duckdb")
+        print(f"  conn = duckdb.connect('{TEST_DB_FILE}')")
+
 
 if __name__ == "__main__":
     main()
