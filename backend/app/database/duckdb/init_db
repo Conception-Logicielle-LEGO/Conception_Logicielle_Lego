@@ -165,42 +165,35 @@ def load_data(conn):
             print(f"❌ Erreur: {e}")
 
 
-def main(Test=False):
-    """Fonction principale"""
+def main(db_file):
+    """Initialise une base DuckDB"""
+    
     print("INITIALISATION DE LA BASE DE DONNÉES LEGO")
-    
-    if Test is False:
-        # connexion à DuckDB
-        print(f"\n Connexion à DuckDB ({DB_FILE})...")
-        conn = duckdb.connect(DB_FILE)
-    else:
-        print(f"\n Connexion à DuckDB ({TEST_DB_FILE})...")
-        conn = duckdb.connect(TEST_DB_FILE)
+    print(f"\nConnexion à DuckDB ({db_file})...")
 
-    print(" Installation de l'extension httpfs...")
-    conn.execute("INSTALL httpfs; LOAD httpfs")  # marche pour les gzip sans les télécharger (mieux que zipfs?)
-    
-    # créer le schéma 
+    conn = duckdb.connect(db_file)
+
+    print("Installation de l'extension httpfs...")
+    conn.execute("INSTALL httpfs; LOAD httpfs")
+
     if not create_schema(conn):
         conn.close()
         return
-    
+
     load_data(conn)
-    
+
     conn.close()
-    if Test is False:
-        print("✅ INITIALISATION TERMINÉE")
-        print(f" Fichier créé: {DB_FILE}")
-        print("\n Pour utiliser la base:")
-        print(f"  import duckdb")
-        print(f"  conn = duckdb.connect('{DB_FILE}')")
-    else :
-        print("✅ INITIALISATION TERMINÉE")
-        print(f" Fichier créé: {TEST_DB_FILE}")
-        print("\n Pour utiliser la base:")
-        print(f"  import duckdb")
-        print(f"  conn = duckdb.connect('{TEST_DB_FILE}')")
+
+    print("✅ INITIALISATION TERMINÉE")
+    print(f"Fichier créé: {db_file}")
 
 
 if __name__ == "__main__":
-    main()
+
+    if not Path(DB_FILE).exists():
+        print(f"📦 Création de {DB_FILE}")
+        main(DB_FILE)
+
+    if not Path(TEST_DB_FILE).exists():
+        print(f"🧪 Création de {TEST_DB_FILE}")
+        main(TEST_DB_FILE)

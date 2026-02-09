@@ -71,17 +71,17 @@ CREATE TABLE IF NOT EXISTS inventory_parts (
     color_id INTEGER,
     quantity INTEGER,
     is_spare BOOLEAN,
-    FOREIGN KEY (inventory_id) REFERENCES inventories(id),
-    FOREIGN KEY (part_num) REFERENCES parts(part_num),
-    FOREIGN KEY (color_id) REFERENCES colors(id)
+    -- FOREIGN KEY (inventory_id) REFERENCES inventories(id),
+    -- FOREIGN KEY (part_num) REFERENCES parts(part_num),
+    -- FOREIGN KEY (color_id) REFERENCES colors(id)
 );
 
 CREATE TABLE IF NOT EXISTS inventory_sets (
     inventory_id INTEGER,
     set_num VARCHAR(20),
     quantity INTEGER,
-    FOREIGN KEY (inventory_id) REFERENCES inventories(id),
-    FOREIGN KEY (set_num) REFERENCES sets(set_num)
+    -- FOREIGN KEY (inventory_id) REFERENCES inventories(id),
+    -- FOREIGN KEY (set_num) REFERENCES sets(set_num)
 );
 
 CREATE TABLE IF NOT EXISTS inventory_minifigs (
