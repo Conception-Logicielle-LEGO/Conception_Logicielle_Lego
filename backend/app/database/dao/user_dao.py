@@ -1,4 +1,5 @@
 from app.business_object.user import User
+from app.database.connexion import db_connection
 
 
 class UserDAO:
@@ -52,47 +53,7 @@ class UserDAO:
             print(f"Error deleting user: {e}")
             return False
 
-    def get_user(self, username=None, id_user=None) -> User | None:
-        """
-        Récupère un utilisateur à partir de son username ou id_user. Au moins l'un des deux paramètres doit
-        être renseigné
-
-        Paramètres
-        ------------
-
-        username
-            string: username de l'utilisateur à renvoyer
-        id_user
-            int: id de l'utilisateur à renvoyer.
-
-        Renvoie:
-        ------------
-        un objet de type User avec les informations de l'utilisateur
-        ou None si l'utilisateur n'est pas trouvé
-
-        """
-        if username is None and id_user is None:
-            raise ValueError("Either username or id_user must be provided.")
-        if username is not None:
-            result = self.conn.execute(
-                """
-                SELECT * FROM users WHERE username = ?
-                """,
-                [username],
-            ).fetchone()
-        else:
-            result = self.conn.execute(
-                """
-                SELECT * FROM users WHERE id_user = ?
-                """,
-                [id_user],
-            ).fetchone()
-        id_user = result["id_user"]
-        username = result["username"]
-        password = result["password"]
-        return User(username=username, id_user=id_user, password=password)
-
-    def update_user(self, update_username: bool, new_entry: str, id_user) -> bool:
+    def update_user(self, update_username: bool, new_entry, id_user) -> bool:
         """
         DAO pour changer soit le username soit le mot de passe d'un utilisateur connecté
 
@@ -139,34 +100,27 @@ class UserDAO:
         ).fetchone()
         return result is not None
 
-    def get_owned_sets(self, id_user: int) -> list[dict]:
-        """
-        Récupère tous les sets possédés par un utilisateur
+    def get_by(self, column: str, value) -> list[User]:
+        # Liste blanche pour éviter les injections SQL via le nom de colonne
+        allowed_columns = {"username", "id_user"}
 
-        Paramètre:
-        id_user : int - id de l'utilisateur
+        if column not in allowed_columns:
+            raise ValueError(f"Colonne '{column}' non autorisée.")
 
-        Renvoie:
-        list[dict] : liste des sets avec informations (set_num)
+        query = f"""
+            SELECT *
+            FROM users
+            WHERE {column} = %(value)s;
         """
-        try:
-            results = self.conn.execute(
-                """
-                SELECT set_num,
-                FROM user_owned_sets
-                WHERE id_user = ?
-                """,
-                [id_user],
-            ).fetchall()
-            return [dict(row) for row in results]
-        except Exception as e:
-            print(f"Error getting owned sets: {e}")
-            return []
+
+        with db_connection().connection.cursor() as cursor:
+            cursor.execute(query, {"value": value})
+            rows = cursor.fetchall()
+
+        # Chaque ligne est convertie avec ton from_dict
+        return [User.from_dict(row) for row in rows]
 
     # TODO: à déplacer dans autres DAO ?
-
-    def get_wishlist(self, id_user):
-        pass
 
     def get_owned_parts(self, id_user):
         pass

@@ -1,7 +1,8 @@
-from app.database.connexion import DB_TEST_PATH, get_connection
-from app.database.dao.user_dao import UserDAO
 from dotenv import load_dotenv
 import pytest
+
+from app.database.connexion import DB_TEST_PATH, get_connection
+from app.database.dao.user_dao import UserDAO
 
 
 load_dotenv()
