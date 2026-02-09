@@ -52,45 +52,6 @@ class UserDAO:
             print(f"Error deleting user: {e}")
             return False
 
-    def get_user(self, username=None, id_user=None) -> User | None:
-        """
-        Récupère un utilisateur à partir de son username ou id_user. Au moins l'un des deux paramètres doit
-        être renseigné
-
-        Paramètres
-        ------------
-
-        username
-            string: username de l'utilisateur à renvoyer
-        id_user
-            int: id de l'utilisateur à renvoyer.
-
-        Renvoie:
-        ------------
-        un objet de type User avec les informations de l'utilisateur
-        ou None si l'utilisateur n'est pas trouvé
-
-        """
-        if username is None and id_user is None:
-            raise ValueError("Either username or id_user must be provided.")
-        if username is not None:
-            result = self.conn.execute(
-                """
-                SELECT * FROM users WHERE username = ?
-                """,
-                [username],
-            ).fetchone()
-        else:
-            result = self.conn.execute(
-                """
-                SELECT * FROM users WHERE id_user = ?
-                """,
-                [id_user],
-            ).fetchone()
-        id_user = result["id_user"]
-        username = result["username"]
-        password = result["password"]
-        return User(username=username, id_user=id_user, password=password)
 
     def update_user(self, update_username: bool, new_entry, id_user) -> bool:
         """
@@ -138,35 +99,34 @@ class UserDAO:
             """SELECT * FROM users WHERE username = %s;""", [username]
         ).fetchone()
         return result is not None
+        
 
-    def get_owned_sets(self, id_user: int) -> list[dict]:
+    def get_by(self, column: str, value) -> list[User]:
+        # Liste blanche pour éviter les injections SQL via le nom de colonne
+        allowed_columns = {
+            "username",
+            "id_user"
+            }
+
+        if column not in allowed_columns:
+            raise ValueError(f"Colonne '{column}' non autorisée.")
+
+        query = f"""
+            SELECT *
+            FROM users
+            WHERE {column} = %(value)s;
         """
-        Récupère tous les sets possédés par un utilisateur
 
-        Paramètre:
-        id_user : int - id de l'utilisateur
+        with db_connection().connection.cursor() as cursor:
+            cursor.execute(query, {"value": value})
+            rows = cursor.fetchall()
 
-        Renvoie:
-        list[dict] : liste des sets avec informations (set_num)
-        """
-        try:
-            results = self.conn.execute(
-                """
-                SELECT set_num, 
-                FROM user_owned_sets
-                WHERE id_user = ?
-                """,
-                [id_user],
-            ).fetchall()
-            return [dict(row) for row in results]
-        except Exception as e:
-            print(f"Error getting owned sets: {e}")
-            return []
+        # Chaque ligne est convertie avec ton from_dict
+        return [User.from_dict(row) for row in rows]
+
+
 
 # TODO: à déplacer dans autres DAO ?
-
-    def get_wishlist(self, id_user):
-        pass
 
     def get_owned_parts(self, id_user):
         pass
