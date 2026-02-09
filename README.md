@@ -21,15 +21,14 @@ installer l'extension Mermaid Preview  v2.1.2
 Depuis la racine du projet, exécutez les commandes suivantes;
 
 ```bash
+cd backend
 uv venv
 uv sync
 ```
 
 ## Requirements :
-### run :
-```bash
-pip install -r requirements.txt
-```
+Géré par le Dockerfile et pyproject.toml
+Pour ajouter un package aux requirements, écrire "uv add <nom package>" dans le bash
 
 
 Exécuter :
