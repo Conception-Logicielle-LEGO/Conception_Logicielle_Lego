@@ -20,7 +20,7 @@ class OwnedPartsDAO:
             WHERE {column} = %(value)s;
         """
 
-        with DBConnection().connection.cursor() as cursor:
+        with db_connection().connection.cursor() as cursor:
             cursor.execute(query, {"value": value})
             rows = cursor.fetchall()
 
