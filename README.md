@@ -49,8 +49,10 @@ python3 -m pip install -r requirements.txt
 ## setup pythonpath
 ### run (dans le terminal) :
 
+On set le pythonpath dans le dossier backend. Placez vous dans /Conception_Logicielle_Lego et exécutez:
+
 ```bash
-export PYTHONPATH=$(pwd)/app
+export PYTHONPATH=$(pwd)/backend
 ```
 
 ### vérifier avec :

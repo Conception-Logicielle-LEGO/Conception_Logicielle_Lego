@@ -1,4 +1,4 @@
-from business_object.user import User
+from app.business_object.user import User
 
 
 class UserDAO:
@@ -92,7 +92,7 @@ class UserDAO:
         password = result["password"]
         return User(username=username, id_user=id_user, password=password)
 
-    def update_user(self, update_username: bool, new_entry, id_user) -> bool:
+    def update_user(self, update_username: bool, new_entry: str, id_user) -> bool:
         """
         DAO pour changer soit le username soit le mot de passe d'un utilisateur connecté
 
@@ -152,7 +152,7 @@ class UserDAO:
         try:
             results = self.conn.execute(
                 """
-                SELECT set_num, 
+                SELECT set_num,
                 FROM user_owned_sets
                 WHERE id_user = ?
                 """,
@@ -163,7 +163,7 @@ class UserDAO:
             print(f"Error getting owned sets: {e}")
             return []
 
-# TODO: à déplacer dans autres DAO ?
+    # TODO: à déplacer dans autres DAO ?
 
     def get_wishlist(self, id_user):
         pass
@@ -182,7 +182,3 @@ class UserDAO:
 
     def delete_wishlist(self, id_user, piece_num):
         pass
-
-    
-
-

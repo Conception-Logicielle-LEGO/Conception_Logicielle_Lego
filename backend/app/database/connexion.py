@@ -70,7 +70,7 @@ def db_connection(read_only=True, test=False):
         conn.close()
 
 
-def get_table_count(table_name):
+def get_table_count(table_name, test):
     """
     Retourne le nombre de lignes dans une table
 
@@ -87,6 +87,6 @@ def get_table_count(table_name):
         >>> count = get_table_count('sets')
         >>> print(f"Nombre de sets: {count:,}")
     """
-    with db_connection() as conn:
+    with db_connection(test=test) as conn:
         result = conn.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()
         return result[0]
