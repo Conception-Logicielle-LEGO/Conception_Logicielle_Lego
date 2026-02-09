@@ -15,7 +15,6 @@ erDiagram
 		integer inventory_id  ""  
 		string part_num  ""  
 		integer color_id  ""  
-		integer price  ""  
 		boolean is_spare  ""  
 	}
 
@@ -69,7 +68,7 @@ erDiagram
 
 	Sets {
 		varchar(20) set_num  ""  
-		carchar(256) name  ""  
+		varchar(256) name  ""  
 		integer year  ""  
 		integer theme_id  ""  
 		integer num_parts  ""  
