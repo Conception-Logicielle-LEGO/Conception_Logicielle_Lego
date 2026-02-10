@@ -9,7 +9,7 @@ on:
 jobs:
   format:
     name: Format check avec Ruff
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22
     
     steps:
     - name: Récupérer le code
@@ -93,17 +93,17 @@ jobs:
       run: uv sync --dev
       working-directory: ./backend
 
-    - name: Créer base de test vide
-      run: |
-        uv run python -c "
-        import duckdb
-        from pathlib import Path
-        conn = duckdb.connect('app/database/duckdb/lego_test.duckdb')
-        schema = Path('app/database/duckdb/schema.sql').read_text()
-        conn.execute(schema)
-        conn.close()
-        "
-      working-directory: ./backend
+    #- name: Créer base de test vide
+    #  run: |
+    #    uv run python -c "
+    #    import duckdb
+    #    from pathlib import Path
+    #    conn = duckdb.connect('app/database/duckdb/lego_test.duckdb')
+    #    schema = Path('app/database/duckdb/schema.sql').read_text()
+    #    conn.execute(schema)
+    #    conn.close()
+    #    "
+    #  working-directory: ./backend
 
     - name: Lancer les tests avec pytest
       run: uv run pytest
