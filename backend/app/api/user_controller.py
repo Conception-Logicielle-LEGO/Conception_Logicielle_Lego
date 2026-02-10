@@ -1,8 +1,9 @@
 from database.connexion import db_connection
 from database.dao.user_dao import UserDAO
-from fastapi import APIRouter, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from service.user_service import UserService
+import uvicorn
 
 
 # Instantiate the web service
@@ -25,7 +26,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-user_router = APIRouter(prefix="/users", tags=["users"])
+
+def run_app():
+    """
+    Starts the FastAPI application using Uvicorn.
+    - Runs on host 0.0.0.0 (accessible from outside container)
+    - Port 8000
+    - Reload enabled for development
+    """
+    uvicorn.run(
+        "backend.app.api.user_controller:app", host="0.0.0.0", port=8000, reload=True
+    )
 
 
 @app.post("/create_user")
