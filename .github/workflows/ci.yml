@@ -22,12 +22,15 @@ jobs:
     
     - name: Configurer Python
       run: uv python install
+      working-directory: ./backend
     
     - name: Installer les dépendances
       run: uv sync --dev
+      working-directory: ./backend
  
     - name: Vérification format avec Ruff
       run: uv run ruff format --check
+      working-directory: ./backend
 
   lint:
     name: Linting avec Ruff
@@ -44,12 +47,15 @@ jobs:
     
     - name: Configurer Python
       run: uv python install
+      working-directory: ./backend
     
     - name: Installer les dépendances
       run: uv sync --dev
+      working-directory: ./backend
     
     - name: Vérification lint avec Ruff
       run: uv run ruff check .
+      working-directory: ./backend
 
   test:
     name: Tests avec pytest
@@ -66,9 +72,12 @@ jobs:
     
     - name: Configurer Python
       run: uv python install
+      working-directory: ./backend
     
     - name: Installer les dépendances
       run: uv sync --dev
+      working-directory: ./backend
     
     - name: Lancer les tests avec pytest
       run: uv run pytest
+      working-directory: ./backend
