@@ -1,20 +1,21 @@
 # from app.database.connexion import db_connection
+# from backend.app.business_object.part import Part
 
 
-class OwnedSetsDAO:
+class PartsDAO:
     def __init__(self, db_connection):
         self.conn = db_connection(read_only=False)
 
     def get_by(self, column: str, value) -> list[dict]:
         ## Liste blanche pour éviter les injections SQL via le nom de colonne
-        # allowed_columns = {"id_user", "set_num"}
+        # allowed_columns = {"id_user", "part_num", "status_owned_wished", "is_used"}
         #
         # if column not in allowed_columns:
         #    raise ValueError(f"Colonne '{column}' non autorisée.")
         #
         # query = f"""
         #    SELECT *
-        #    FROM owned_sets
+        #    FROM user_parts
         #    WHERE {column} = %(value)s;
         # """
         #
@@ -23,5 +24,5 @@ class OwnedSetsDAO:
         #    rows = cursor.fetchall()
         #
         ## Chaque ligne est convertie avec ton from_dict
-        # return [Owned_set.from_dict(row) for row in rows]
+        # return [Part.from_dict(row) for row in rows]
         pass

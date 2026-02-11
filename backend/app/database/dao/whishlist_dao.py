@@ -1,4 +1,5 @@
 # from app.database.connexion import db_connection
+# from backend.app.business_object.whishlist import Wishlist
 
 
 class WishlistDAO:
