@@ -1,4 +1,4 @@
-name: Python Lint and Format
+name: Format & Lint
 
 on:
   push:
@@ -23,9 +23,10 @@ jobs:
       uses: astral-sh/setup-uv@v4
       with:
         version: "latest"
+        enable-cache: true
     
     - name: Configurer Python
-      run: uv python install
+      run: uv python install 3.13
     
     - name: Installer les dépendances
       run: uv sync --dev
@@ -49,9 +50,10 @@ jobs:
       uses: astral-sh/setup-uv@v4
       with:
         version: "latest"
+        enable-cache: true
     
     - name: Configurer Python
-      run: uv python install
+      run: uv python install 3.13
     
     - name: Installer les dépendances
       run: uv sync --dev

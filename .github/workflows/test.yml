@@ -1,1 +1,114 @@
-# à remplir
+name: Tests
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Tests avec pytest
+    runs-on: ubuntu-22.04
+
+    # 🗄️ Service PostgreSQL pour les futures tables utilisateur
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: lego_users_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: backend
+    
+    steps:
+    - name: Récupérer le code
+      uses: actions/checkout@v4
+    
+    - name: Installer uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        version: "latest"
+        enable-cache: true
+    
+    - name: Configurer Python
+      run: uv python install 3.13
+    
+    - name: Installer les dépendances
+      run: uv sync --dev
+
+    #  ÉTAPE 1 : Créer le schéma PostgreSQL (quand schema_user.sql existera)
+    # Décommenter quand backend/app/database/postgresql/schema_user.sql sera créé
+    #- name: Créer le schéma PostgreSQL pour les tests
+    #  run: |
+    #    PGPASSWORD=test psql -h localhost -U test -d lego_users_test -f app/database/postgresql/schema_user.sql
+    #  env:
+    #    POSTGRES_HOST: localhost
+    #    POSTGRES_PORT: 5432
+    #    POSTGRES_DB: lego_users_test
+    #    POSTGRES_USER: test
+    #    POSTGRES_PASSWORD: test
+
+    #  ÉTAPE 2 : Créer base DuckDB de test avec schéma uniquement (pas de données)
+    # Décommenter quand les tests auront besoin de DuckDB
+    #- name: Créer base DuckDB de test
+    #  run: |
+    #    mkdir -p app/database/duckdb
+    #    uv run python -c "
+    #    import duckdb
+    #    from pathlib import Path
+    #    
+    #    print('📦 Création base test DuckDB...')
+    #    conn = duckdb.connect('app/database/duckdb/lego_test.duckdb')
+    #    
+    #    schema_path = Path('app/database/duckdb/schema.sql')
+    #    if not schema_path.exists():
+    #        print(f' Fichier introuvable: {schema_path}')
+    #        exit(1)
+    #    
+    #    schema = schema_path.read_text()
+    #    statements = [s.strip() for s in schema.split(';') if s.strip()]
+    #    print(f'Exécution de {len(statements)} statements SQL...')
+    #    
+    #    for i, stmt in enumerate(statements):
+    #        try:
+    #            conn.execute(stmt)
+    #        except Exception as e:
+    #            # Ignorer les erreurs 'table already exists'
+    #            if 'already exists' not in str(e).lower():
+    #                print(f'⚠️  Statement {i}: {e}')
+    #                raise
+    #    
+    #    tables = conn.execute('SHOW TABLES').fetchall()
+    #    print(f'{len(tables)} tables créées')
+    #    conn.close()
+    #    "
+
+    # ÉTAPE 3 : Lancer les tests
+    # Décommenter quand prêt
+    #- name: Lancer les tests avec pytest
+    #  run: uv run pytest -v --cov=app --cov-report=term-missing
+    #  env:
+    #    POSTGRES_HOST: localhost
+    #    POSTGRES_PORT: 5432
+    #    POSTGRES_DB: lego_users_test
+    #    POSTGRES_USER: test
+    #    POSTGRES_PASSWORD: test
+
+    # Upload coverage report (optionnel)
+    #- name: Upload coverage to Codecov
+    #  uses: codecov/codecov-action@v4
+    #  with:
+    #    file: ./backend/coverage.xml
+    #    flags: unittests
+    #    name: codecov-umbrella
