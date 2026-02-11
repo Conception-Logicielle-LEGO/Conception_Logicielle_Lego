@@ -26,7 +26,7 @@ app.add_middleware(
 )
 
 
-@app.post("/user/get_user")
+@app.post("/user/create_user")
 async def create_user(username: str, password: str):
     userdao = UserDAO(db_connection=db_connection(read_only=False))
     userservice = UserService(user_dao=userdao)
