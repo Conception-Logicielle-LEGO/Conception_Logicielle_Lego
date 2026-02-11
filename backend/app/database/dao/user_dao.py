@@ -101,6 +101,28 @@ class UserDAO:
         return result is not None
 
     def get_by(self, column: str, value) -> list[User]:
+        """
+        Récupère les utilisateurs depuis la base de données selon une colonne donnée.
+
+        Cette fonction effectue une requête sécurisée pour éviter les injections SQL
+        en utilisant une liste blanche des colonnes autorisées. Chaque ligne récupérée
+        est transformée en objet User via la méthode from_dict.
+
+        Paramètres :
+        column : str
+            Nom de la colonne à filtrer (doit être dans {"username", "id_user"})
+        value : Any
+            Valeur à chercher dans la colonne spécifiée
+
+        Renvoie :
+        list[User] :
+            Liste d'objets User correspondant aux critères.
+            La liste peut être vide si aucun utilisateur ne correspond.
+
+        Lève :
+        ValueError :
+            Si la colonne passée en paramètre n'est pas autorisée
+        """
         # Liste blanche pour éviter les injections SQL via le nom de colonne
         allowed_columns = {"username", "id_user"}
 
