@@ -9,7 +9,7 @@ on:
 jobs:
   format:
     name: Format check avec Ruff
-    runs-on: ubuntu-22
+    runs-on: ubuntu-22.04  #  Fix: était ubuntu-22
     
     steps:
     - name: Récupérer le code
@@ -19,9 +19,10 @@ jobs:
       uses: astral-sh/setup-uv@v4
       with:
         version: "latest"
+        enable-cache: true  #  Ajout cache
     
     - name: Configurer Python
-      run: uv python install
+      run: uv python install 3.13  #  Spécifier version
       working-directory: ./backend
     
     - name: Installer les dépendances
@@ -44,9 +45,10 @@ jobs:
       uses: astral-sh/setup-uv@v4
       with:
         version: "latest"
+        enable-cache: true  #  Ajout cache
     
     - name: Configurer Python
-      run: uv python install
+      run: uv python install 3.13  #  Spécifier version
       working-directory: ./backend
     
     - name: Installer les dépendances
@@ -84,31 +86,17 @@ jobs:
       uses: astral-sh/setup-uv@v4
       with:
         version: "latest"
+        enable-cache: true  #  Ajout cache
     
     - name: Configurer Python
-      run: uv python install
+      run: uv python install 3.13  #  Spécifier version
       working-directory: ./backend
     
     - name: Installer les dépendances
       run: uv sync --dev
       working-directory: ./backend
 
-    #- name: Créer base de test vide
-    #  run: |
-    #    uv run python -c "
-    #    import duckdb
-    #    from pathlib import Path
-    #    conn = duckdb.connect('app/database/duckdb/lego_test.duckdb')
-    #    schema = Path('app/database/duckdb/schema.sql').read_text()
-    #    conn.execute(schema)
-    #    conn.close()
-    #    "
-    #  working-directory: ./backend
-
-    #- name: Lancer les tests avec pytest
-    #  run: uv run pytest
-    #  working-directory: ./backend
-
+    # 🚧 Steps commentés en attendant migration PostgreSQL
     #- name: Créer le schéma PostgreSQL pour les tests
     #  run: |
     #    PGPASSWORD=test psql -h localhost -U test -d lego_users_test -f app/database/postgresql/schema_user.sql
@@ -119,21 +107,27 @@ jobs:
     #    POSTGRES_DB: lego_users_test
     #    POSTGRES_USER: test
     #    POSTGRES_PASSWORD: test
-    #    
-    #- name: Créer une mini base DuckDB pour les tests
+    
+    #- name: Créer base DuckDB de test
     #  run: |
     #    uv run python -c "
     #    import duckdb
-    #    conn = duckdb.connect('lego_test.duckdb')
-    #    # Créer juste le schéma, sans charger les données
-    #    with open('app/database/duckdb/schema.sql') as f:
-    #        conn.execute(f.read())
+    #    from pathlib import Path
+    #    conn = duckdb.connect('app/database/duckdb/lego_test.duckdb')
+    #    schema = Path('app/database/duckdb/schema.sql').read_text()
+    #    statements = [s.strip() for s in schema.split(';') if s.strip()]
+    #    for stmt in statements:
+    #        try:
+    #            conn.execute(stmt)
+    #        except Exception as e:
+    #            if 'already exists' not in str(e):
+    #                raise
     #    conn.close()
     #    "
     #  working-directory: ./backend
-#
+
     #- name: Lancer les tests avec pytest
-    #  run: uv run pytest
+    #  run: uv run pytest -v
     #  working-directory: ./backend
     #  env:
     #    POSTGRES_HOST: localhost
@@ -141,3 +135,4 @@ jobs:
     #    POSTGRES_DB: lego_users_test
     #    POSTGRES_USER: test
     #    POSTGRES_PASSWORD: test
+    
