@@ -3,7 +3,8 @@ name: deploiement-dockerhub-main
 on:
   push:
     branches:
-      - main  
+      - main 
+      - connexion-docker 
 
 jobs:
   docker:
