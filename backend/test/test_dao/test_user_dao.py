@@ -1,4 +1,4 @@
-from app.database.connexion import get_table_count
+from app.database.connexion_duckdb import get_table_count
 
 
 def test_create_update_delete_user_ok(user_dao):  # clean_user_tables en argument ?
