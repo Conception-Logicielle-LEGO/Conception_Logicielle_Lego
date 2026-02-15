@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import pytest
 
-from app.database.connexion import DB_TEST_PATH, get_connection
+from backend.app.database.connexion_duckdb import DB_TEST_PATH, get_connection
 from app.database.dao.user_dao import UserDAO
 
 
@@ -18,10 +18,10 @@ def init_test_db():
         DB_TEST_PATH.unlink()
 
     # Initialiser la base de test
-    from app.database.duckdb import init_db
+    from backend.app.database.duckdb import init_db_lego
 
     test_db_file = "lego_test.duckdb"
-    init_db.main(test_db_file)
+    init_db_lego.main(test_db_file)
 
     yield
 
@@ -71,7 +71,7 @@ def clean_all_tables(db_connection_test):
     Nettoie TOUTES les tables (y compris Rebrickable)
     À utiliser seulement si nécessaire car c'est plus lent
     """
-    # Ordre inverse pour respecter les contraintes de clés étrangères
+    # Ordre pour respecter les contraintes de clés étrangères
     all_tables = [
         "user_parts",
         "user_owned_sets",

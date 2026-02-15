@@ -16,6 +16,13 @@ installer l'extension Mermaid Preview  v2.1.2
 
 ---
 
+## Variables d'environnement :
+Copier la template dans un fichier .env
+
+```bash
+cp .env.template .env
+```
+
 ### Création de l’environnement et installation des dépendances
 
 Depuis la racine du projet, exécutez les commandes suivantes;
@@ -25,48 +32,67 @@ cd backend
 uv venv
 uv sync
 ```
-
 ## Requirements :
 Géré par le Dockerfile et pyproject.toml
 Pour ajouter un package aux requirements, écrire "uv add <nom package>" dans le bash
 
 
-Exécuter :
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-
-python3 -m pip install --upgrade pip
-python3 -m pip --version
-python3 -m pip install requests
-python3 -m pip install -r requirements.txt
-```
-
-
-
 ## setup pythonpath
 ### run (dans le terminal) :
 
-On set le pythonpath dans le dossier backend. Placez vous dans /Conception_Logicielle_Lego et exécutez:
-
+On set le pythonpath dans le dossier backend. Exécutez depuis le dossier backend :
 ```bash
-export PYTHONPATH=$(pwd)/backend
+export PYTHONPATH=$(pwd)
 ```
 
 ### vérifier avec :
-
 ```bash
 echo $PYTHONPATH
 ```
 
+# Mise en place BDD
+## BDD rebrickable (duckDB local) :
 
-## Variables d'environnement :
-Copier la template dans un fichier .env
+Exécuter (toujours depuis backend)
+
+```python
+python app/database/duckdb/init_db_lego.py
+```
+
+## BDD Users (postgreSQL) :
+
+### Cas initialisation :
+
+1) Lancer un service PostgreSQL sur onyxia avec ces paramètres :
+
+https://datalab.sspcloud.fr/launcher/databases/postgresql-cnpg?name=postgresql-cnpg&version=0.4.2&extension.pgvector=true&storage.size=«20Gi»&resources.limits.memory=«80Gi»&security.networkPolicy.enabled=false&autoLaunch=true 
+
+2) renseigner le nom d'utilisateur et le mot de passe du service dans le .env
+
+3) ouvrir un terminal et exécuter :
 
 ```bash
-cp .env.template .env
+kubectl get pods
 ```
+Cette commande retourne les services onyxia lancés. Copier le nom du service postgresql et exécutez :
+
+```bash
+export POD=<nom_du_service>
+echo $POD
+
+kubectl port-forward $POD 5432:5432
+```
+4) Ouvrir un autre terminal et exécutez:
+
+```python
+cd backend
+python app/database/postgres/init_db_user.py
+```
+
+
+### Cas où on veut accéder au port (autre utilisateur)
+
+TODO
 
 
 
