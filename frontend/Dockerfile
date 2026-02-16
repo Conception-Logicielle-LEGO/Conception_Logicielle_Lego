@@ -2,7 +2,7 @@
 FROM node:lts-trixie
 WORKDIR /app
 
-COPY package.json package-lock.json ./frontend
+COPY package.json package-lock.json ./
 RUN npm install
 
 COPY . .
