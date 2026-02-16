@@ -18,12 +18,12 @@ class SetDAO(BaseDAO):
         """Colonnes autorisées pour les requêtes get_by()"""
         return {"id_user", "set_num", "is_built"}
 
-    def from_row(self, row: dict) -> dict:
-        """
-        Convertit une ligne SQL en dictionnaire.
-        Pour user_owned_sets, on retourne un dict car on n'a pas de BO dédié.
-        """
-        return row
+    # def from_row(self, row: dict) -> Set:
+    #    """
+    #    Convertit une ligne SQL en dictionnaire.
+    #    Pour user_owned_sets, on retourne un dict car on n'a pas de BO dédié.
+    #    """
+    #    return row
 
     def get_user_sets(self, id_user: int) -> list[dict]:
         """
