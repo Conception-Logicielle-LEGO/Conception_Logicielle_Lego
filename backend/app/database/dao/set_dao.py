@@ -10,6 +10,9 @@ class SetDAO(BaseDAO):
     et les sets possédés par les utilisateurs (table user_owned_sets).
     """
 
+    def __init__(self, db_connection):
+        self.conn = db_connection()
+
     def get_table_name(self) -> str:
         """Table principale : user_owned_sets"""
         return "user_owned_sets"
