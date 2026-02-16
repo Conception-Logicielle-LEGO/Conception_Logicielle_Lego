@@ -4,9 +4,8 @@ Initialisation de la base PostgreSQL
 
 from pathlib import Path
 
+from backend.app.database.connexion_postgresql import PG_CONFIG
 import psycopg2
-
-from app.database.connexion_postgreSQL import PG_CONFIG
 
 
 def init_postgres_db():

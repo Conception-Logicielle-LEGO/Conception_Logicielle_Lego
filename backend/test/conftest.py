@@ -1,7 +1,7 @@
+from backend.app.database.connexion_duckdb import DB_TEST_PATH, get_connection
 from dotenv import load_dotenv
 import pytest
 
-from backend.app.database.connexion_duckdb import DB_TEST_PATH, get_connection
 from app.database.dao.user_dao import UserDAO
 
 
