@@ -1,6 +1,6 @@
 FROM astral/uv:python3.13-trixie
 
-COPY pyproject.toml 
+COPY pyproject.toml ./
 RUN uv sync 
 
 COPY ..
