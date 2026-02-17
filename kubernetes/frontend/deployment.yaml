@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ${{ vars.DOCKERHUB_USERNAME }}/image-frontend:latest
+          image: marieckebv/image-frontend:latest
           imagePullPolicy: Always
           resources:
             resources:
