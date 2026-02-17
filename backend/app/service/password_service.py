@@ -5,24 +5,27 @@ from database.dao.user_dao import UserDAO
 from utils.securite import hash_password
 
 
-def create_salt() -> str:
-    return secrets.token_hex(128)
+class PasswordService:
+    def __init__(self, user_dao: UserDAO) -> User:
+        self.dao = user_dao or UserDAO()
 
+    def create_salt(self) -> str:
+        return secrets.token_hex(128)
 
-def validate_username_password(username: str, password: str, user_dao: UserDAO) -> User:
-    """
-    Vérifie que le mot de passe entré est correct et dans ce cas renvoie le profil utilisateur complet
-    """
-    user_with_username = user_dao.get_user(username=username)
-    if user_with_username is None:
-        raise Exception(f"user with username {username} not found")
+    def validate_username_password(self, username: str, password: str) -> User:
+        """
+        Vérifie que le mot de passe entré est correct et dans ce cas renvoie le profil utilisateur complet
+        """
+        user_with_username = self.dao.get_user(username=username)
+        if user_with_username is None:
+            raise Exception(f"user with username {username} not found")
 
-    salt = user_with_username.salt
-    stored_hash = user_with_username.password
+        salt = user_with_username.salt
+        stored_hash = user_with_username.password
 
-    computed_hash = hash_password(password, salt)
+        computed_hash = hash_password(password, salt)
 
-    if computed_hash != stored_hash:
-        raise Exception("Incorrect password")
+        if computed_hash != stored_hash:
+            raise Exception("Incorrect password")
 
-    return user_with_username
+        return user_with_username
