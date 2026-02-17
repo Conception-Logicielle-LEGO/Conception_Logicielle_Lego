@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: ${{ vars.DOCKERHUB_USERNAME }}/backend:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: "200Mi"
+              cpu: "300m"
+          envFrom:
+            - configMapRef:
+                name: configuration-backend
+          ports:
+            - containerPort: 8000
