@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS minifigs (
 CREATE TABLE IF NOT EXISTS inventories (
     id INTEGER PRIMARY KEY,
     version INTEGER,
-    set_num VARCHAR(20),
+    set_num VARCHAR(20)
     -- retrait de la foreign key : FOREIGN KEY (set_num) REFERENCES sets(set_num)
 );
 
@@ -88,8 +88,8 @@ CREATE TABLE IF NOT EXISTS inventory_minifigs (
     inventory_id INTEGER,
     fig_num VARCHAR(20),
     quantity INTEGER,
-    FOREIGN KEY (inventory_id) REFERENCES inventories(id),
-    FOREIGN KEY (fig_num) REFERENCES minifigs(fig_num)
+    -- FOREIGN KEY (inventory_id) REFERENCES inventories(id),
+    -- FOREIGN KEY (fig_num) REFERENCES minifigs(fig_num)
 );
 
 
