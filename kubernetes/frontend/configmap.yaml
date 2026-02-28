@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configuration-frontend
+data:
+  VITE_API_URL: https://api-lego-ensai.kub.sspcloud.fr
+  VITE_ENVIRONNEMENT: sspcloud-pd
+  __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS: "appli-lego-ensai.kub.sspcloud.fr"

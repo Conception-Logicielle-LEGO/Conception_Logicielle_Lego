@@ -34,9 +34,9 @@ def create_schema(conn):
 
     # Lire le fichier SQL
     base_dir = Path(__file__).resolve().parent
-    schema_path = base_dir / "schema.sql"
+    schema_path = base_dir / "schema_lego.sql"
     if not schema_path.exists():
-        print("❌ Fichier schema.sql introuvable")
+        print("❌ Fichier schema_lego.sql introuvable")
         return False
 
     with open(schema_path) as f:

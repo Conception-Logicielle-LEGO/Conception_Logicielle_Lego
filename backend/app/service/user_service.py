@@ -1,6 +1,6 @@
 from business_object.user import User
 from database.dao.user_dao import UserDAO
-from service.password_service import create_salt, validate_username_password
+from service.password_service import PasswordService
 from utils.securite import hash_password
 
 
@@ -20,7 +20,8 @@ class UserService:
         Renvoie :
         user : User complet avec l'id_user attribué par la table, le mot de passe hashé et le salt
         """
-        salt = create_salt()
+        passwordservice = PasswordService(user_dao=self.user_dao)
+        salt = passwordservice.create_salt()
         hashed_password = hash_password(password)
 
         new_user = User(
@@ -42,8 +43,10 @@ class UserService:
 
         Renvoie :
         Bool : False si la fonction échoue, True si elle réussit"""
-        user = validate_username_password(
-            username=username, password=old_password, user_dao=self.user_dao
+        password_service = PasswordService(dao=self.user_dao)
+        user = password_service.validate_username_password(
+            username=username,
+            password=old_password,
         )
         if user is None:
             return False
