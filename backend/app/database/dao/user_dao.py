@@ -1,20 +1,37 @@
 from app.business_object.user import User
-from app.database.connexion import db_connection
+from app.database.dao.base_dao import BaseDAO
 
 
-class UserDAO:
-    def __init__(self, db_connection):
-        self.conn = db_connection(read_only=False)
+class UserDAO(BaseDAO):
+    """
+    DAO pour gérer les utilisateurs dans la base de données.
+    Hérite de BaseDAO pour bénéficier des méthodes génériques.
+    """
+
+    def get_table_name(self) -> str:
+        return "users"
+
+    def get_allowed_columns(self) -> set[str]:
+        return {"username", "id_user"}
+
+    def from_row(self, row: dict) -> User:
+        """Convertit une ligne SQL en objet User"""
+        return User.from_dict(row)
 
     def create_user(self, user: User) -> User | None:
         """
         Créer un nouvel utilisateur dans la base de données
-        ------------
-        Paramètres
-        user : utilisateur de type User sans id_user
 
-        Renvoie
-        un objet de type user avec l'id_user crée par la bdd
+        Paramètres :
+        ------------
+        user : User
+            Utilisateur de type User sans id_user
+
+        Renvoie :
+        ---------
+        User | None :
+            Un objet de type User avec l'id_user créé par la BDD,
+            ou None en cas d'erreur
         """
         with self.conn as conn:
             try:
@@ -36,16 +53,20 @@ class UserDAO:
                 print(f"Error creating user: {e}")
                 return None
 
-    def delete_user(self, id_user) -> bool:
+    def delete_user(self, id_user: int) -> bool:
         """
         Supprime un utilisateur à partir de son id_user
 
-        Paramètre:
-        ------------
-        id_user
-            int: id de l'utilisateur à supprimer
+        Paramètre :
+        -----------
+        id_user : int
+            ID de l'utilisateur à supprimer
+
+        Renvoie :
+        ---------
+        bool :
+            True si succès, False si échec
         """
-        self.conn.execute("DELETE FROM users WHERE id_user = ?", [id_user])
         try:
             self.conn.execute("DELETE FROM users WHERE id_user = ?", [id_user])
             return True
@@ -53,17 +74,23 @@ class UserDAO:
             print(f"Error deleting user: {e}")
             return False
 
-    def update_user(self, update_username: bool, new_entry, id_user) -> bool:
+    def update_user(self, update_username: bool, new_entry: str, id_user: int) -> bool:
         """
         DAO pour changer soit le username soit le mot de passe d'un utilisateur connecté
 
         Paramètres :
-        update_username : bool pour savoir si on update le username ou le mot de passe
-        new_entry : nouvelle entrée (ie nouveau username ou mot de passe déjà hashé)
+        ------------
+        update_username : bool
+            True pour mettre à jour le username, False pour le mot de passe
+        new_entry : str
+            Nouvelle entrée (nouveau username ou mot de passe déjà hashé)
         id_user : int
+            ID de l'utilisateur
 
-        Return :
-        True si succès, False si echec
+        Renvoie :
+        ---------
+        bool :
+            True si succès, False si échec
         """
         if update_username:
             result = self.conn.execute(
@@ -82,79 +109,27 @@ class UserDAO:
                 WHERE id_user = ?
                 RETURNING id_user;""",
                 [new_entry, id_user],
-            ).fetchone
+            ).fetchone()
         return result is not None
 
-    def is_username_taken(self, username) -> bool:
+    def is_username_taken(self, username: str) -> bool:
         """
-        Vérifie si un username est déjà utilisé
-        Utile pour assurer l'unicité des usernames lors de l'inscription ou modification de profil des utilisateurs
+        Vérifie si un username est déjà utilisé.
+        Utile pour assurer l'unicité des usernames lors de l'inscription
+        ou modification de profil des utilisateurs.
 
         Paramètre :
-        username : nom d'utilisateur à tester
+        -----------
+        username : str
+            Nom d'utilisateur à tester
 
         Renvoie :
-        False si le nom est libre, True s'il est occupé"""
-        result = self.conn.execute(
-            """SELECT * FROM users WHERE username = %s;""", [username]
-        ).fetchone()
-        return result is not None
+        ---------
+        bool :
+            True si le nom est occupé, False s'il est libre
 
-    def get_by(self, column: str, value) -> list[User]:
+        Note :
+        ------
+        Utilise la méthode exists() héritée de BaseDAO
         """
-        Récupère les utilisateurs depuis la base de données selon une colonne donnée.
-
-        Cette fonction effectue une requête sécurisée pour éviter les injections SQL
-        en utilisant une liste blanche des colonnes autorisées. Chaque ligne récupérée
-        est transformée en objet User via la méthode from_dict.
-
-        Paramètres :
-        column : str
-            Nom de la colonne à filtrer (doit être dans {"username", "id_user"})
-        value : Any
-            Valeur à chercher dans la colonne spécifiée
-
-        Renvoie :
-        list[User] :
-            Liste d'objets User correspondant aux critères.
-            La liste peut être vide si aucun utilisateur ne correspond.
-
-        Lève :
-        ValueError :
-            Si la colonne passée en paramètre n'est pas autorisée
-        """
-        # Liste blanche pour éviter les injections SQL via le nom de colonne
-        allowed_columns = {"username", "id_user"}
-
-        if column not in allowed_columns:
-            raise ValueError(f"Colonne '{column}' non autorisée.")
-
-        query = f"""
-            SELECT *
-            FROM users
-            WHERE {column} = %(value)s;
-        """
-
-        with db_connection().connection.cursor() as cursor:
-            cursor.execute(query, {"value": value})
-            rows = cursor.fetchall()
-
-        # Chaque ligne est convertie avec ton from_dict
-        return [User.from_dict(row) for row in rows]
-
-    # TODO: à déplacer dans autres DAO ?
-
-    def get_owned_parts(self, id_user):
-        pass
-
-    def add_owned_set(self, id_user, set_num):
-        pass
-
-    def delete_owned_set(self, id_user, set_num):
-        pass
-
-    def add_wishlist(self, id_user, piece_num):
-        pass
-
-    def delete_wishlist(self, id_user, piece_num):
-        pass
+        return self.exists("username", username)
