@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import { Heart, Bookmark, User, Package, Hammer, Box, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -11,6 +11,7 @@ import api from '../api/api_test';
 export default function AccountPage() {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [collection, setCollection] = useState([]);
   const [favorites, setFavorites] = useState([]);
@@ -42,7 +43,7 @@ export default function AccountPage() {
       setWishlistParts(wParts);
       setOwnedParts(parts);
     }).finally(() => setDataLoading(false));
-  }, [user]);
+  }, [user, location.pathname]);
 
   // Groupe les lignes (libre/utilisée) par (part_num, color_id)
   const groupedParts = Object.values(

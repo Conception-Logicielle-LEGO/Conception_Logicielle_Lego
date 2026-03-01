@@ -6,10 +6,20 @@ import SetCard from '../components/SetCard';
 import Loader from '../components/Loader';
 import api from '../api/api_test';
 
+// Aplatit un BuildableSet.to_dict() en objet compatible SetCard
+function flattenBuildable(item) {
+  return {
+    ...item.set,
+    coverage_pct: item.buildability.completion_percentage,
+  };
+}
+
 export default function BuildablePage() {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
-  const [sets, setSets] = useState([]);
+  const [buildable, setBuildable] = useState([]);
+  const [partial, setPartial] = useState([]);
+  const [colorFlex, setColorFlex] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -25,7 +35,11 @@ export default function BuildablePage() {
     setError(null);
     api
       .get(`/users/${user.id}/buildable`, { params: { limit: 50 } })
-      .then((r) => setSets(r.data))
+      .then((r) => {
+        setBuildable((r.data.buildable ?? []).map(flattenBuildable));
+        setPartial((r.data.partial ?? []).map(flattenBuildable));
+        setColorFlex((r.data.color_flexible ?? []).map(flattenBuildable));
+      })
       .catch(() => setError('Impossible de charger les sets constructibles.'))
       .finally(() => setLoading(false));
   }, [user]);
@@ -33,8 +47,10 @@ export default function BuildablePage() {
   if (isLoading) return null;
   if (!user) return null;
 
+  const total = buildable.length + partial.length + colorFlex.length;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
         <h1 className="flex items-center gap-2 text-3xl font-bold text-gray-900">
           <Wrench size={28} className="text-red-600" />
@@ -49,7 +65,7 @@ export default function BuildablePage() {
         <Loader message="Calcul des sets constructibles…" />
       ) : error ? (
         <p className="py-12 text-center text-red-500">{error}</p>
-      ) : sets.length === 0 ? (
+      ) : total === 0 ? (
         <p className="py-12 text-center text-gray-500">
           Aucun set constructible trouvé.
           <br />
@@ -57,12 +73,47 @@ export default function BuildablePage() {
         </p>
       ) : (
         <>
-          <p className="text-sm text-gray-500">{sets.length} set(s) constructible(s)</p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {sets.map((set) => (
-              <SetCard key={set.set_num} set={set} />
-            ))}
-          </div>
+          {buildable.length > 0 && (
+            <section>
+              <h2 className="mb-3 text-lg font-semibold text-green-700">
+                ✅ Constructibles à 100 % ({buildable.length})
+              </h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {buildable.map((set) => (
+                  <SetCard key={set.set_num} set={set} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {partial.length > 0 && (
+            <section>
+              <h2 className="mb-3 text-lg font-semibold text-yellow-700">
+                🔨 Presque constructibles ≥ 80 % ({partial.length})
+              </h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {partial.map((set) => (
+                  <SetCard key={set.set_num} set={set} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {colorFlex.length > 0 && (
+            <section>
+              <h2 className="mb-3 text-lg font-semibold text-blue-700">
+                🎨 Constructibles (couleur flexible) ({colorFlex.length})
+              </h2>
+              <p className="mb-3 text-sm text-gray-500">
+                Vous avez les bonnes pièces, mais pas nécessairement dans les couleurs exactes.
+              </p>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {colorFlex.map((set) => (
+                  <SetCard key={set.set_num} set={set} />
+                ))}
+              </div>
+            </section>
+          )}
         </>
       )}
     </div>

@@ -21,35 +21,33 @@ export default function SetCard({ set, initialFavorite = false, initialWishliste
     setTimeout(() => setFeedback(null), 1800);
   }
 
-  async function toggleFavorite(e) {
+  function toggleFavorite(e) {
     e.stopPropagation();
     if (!user) return;
     if (isFavorite) {
-      await api.delete(`/users/${user.id}/favorites/${set.set_num}`).catch(() => {});
+      api.delete(`/users/${user.id}/favorites/${set.set_num}`).catch(() => {});
       setIsFavorite(false);
     } else {
-      await api.post(`/users/${user.id}/favorites`, { set_num: set.set_num }).catch(() => {});
+      api.post(`/users/${user.id}/favorites`, { set_num: set.set_num }).catch(() => {});
       setIsFavorite(true);
     }
   }
 
-  async function toggleWishlist(e) {
+  function toggleWishlist(e) {
     e.stopPropagation();
     if (!user) return;
     if (isWishlisted) {
-      await api.delete(`/users/${user.id}/wishlist/sets/${set.set_num}`).catch(() => {});
+      api.delete(`/users/${user.id}/wishlist/sets/${set.set_num}`).catch(() => {});
       setIsWishlisted(false);
     } else {
-      await api.post(`/users/${user.id}/wishlist/sets`, { set_num: set.set_num }).catch(() => {});
+      api.post(`/users/${user.id}/wishlist/sets`, { set_num: set.set_num }).catch(() => {});
       setIsWishlisted(true);
     }
   }
 
-  async function addToCollection(isBuilt) {
+  function addToCollection(isBuilt) {
     if (!user) return;
-    await api
-      .post(`/users/${user.id}/collection`, { set_num: set.set_num, is_built: isBuilt })
-      .catch(() => {});
+    api.post(`/users/${user.id}/collection`, { set_num: set.set_num, is_built: isBuilt }).catch(() => {});
     setAddMode(null);
     showFeedback('collection');
   }
