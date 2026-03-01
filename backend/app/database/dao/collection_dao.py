@@ -52,6 +52,21 @@ class CollectionDAO:
             cur.execute(query, (user_id, set_num))
             return cur.rowcount > 0
 
+    def mark_set_as_unbuilt(self, user_id: int, set_num: str) -> bool:
+        """
+        Marque un set comme non construit.
+        Returns:
+            True si mis à jour, False si le set n'existe pas.
+        """
+        query = """
+            UPDATE user_owned_sets
+            SET is_built = FALSE
+            WHERE id_user = %s AND set_num = %s
+        """
+        with self.connection.cursor() as cur:
+            cur.execute(query, (user_id, set_num))
+            return cur.rowcount > 0
+
     def get_user_collection(self, user_id: int) -> list[UserOwnedSet]:
         """
         Récupère tous les sets de la collection d'un utilisateur.

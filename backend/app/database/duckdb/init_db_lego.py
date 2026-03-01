@@ -8,8 +8,9 @@ import duckdb
 load_dotenv()
 
 # Configuration
-DB_FILE = "lego.duckdb"
-TEST_DB_FILE = "lego_test.duckdb"
+_DB_DIR = Path(__file__).resolve().parent
+DB_FILE = str(_DB_DIR / "lego.duckdb")
+TEST_DB_FILE = str(_DB_DIR / "lego_test.duckdb")
 
 # URLs des fichiers CSV (gzip)
 URLS = {
@@ -135,7 +136,7 @@ def load_data(conn):
             elif table == "sets":
                 conn.execute(f"""
                     INSERT INTO {table}
-                    SELECT set_num, name, year, theme_id, num_parts
+                    SELECT set_num, name, year, theme_id, num_parts, img_url
                     {read_rebrickable_csv(URLS[table])}
                 """)
             elif table == "minifigs":
@@ -176,10 +177,203 @@ def load_data(conn):
             print(f"❌ Erreur: {e}")
 
 
-def main(db_file):
-    """Initialise une base DuckDB"""
+def load_test_data(conn):
+    """Charge un sous-ensemble cohérent pour la base de test.
 
-    print("INITIALISATION DE LA BASE DE DONNÉES LEGO")
+    Ordre de chargement pensé pour respecter les FK actives :
+      1. Tables de référence (themes, colors, part_categories) — toutes les lignes
+      2. sets (LIMIT 100) → inventories → inventory_parts (FK commentées → OK)
+      3. parts dérivés des inventory_parts → part_relationships, elements
+      4. minifigs, inventory_sets, inventory_minifigs
+    """
+    print("\n📥 Chargement du sous-ensemble de test...")
+
+    def csv(key):
+        return read_rebrickable_csv(URLS[key])
+
+    def _check(key):
+        if not URLS.get(key):
+            print(f"  ⚠️  URL manquante pour {key}")
+            return False
+        return True
+
+    def _count(table):
+        return conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+
+    # ── 1. Tables de référence (complètes, petites) ─────────────────────────
+
+    for table, query in [
+        ("themes", "SELECT id, name, parent_id"),
+        ("colors", "SELECT id, name, rgb, is_trans"),
+        ("part_categories", "SELECT id, name"),
+    ]:
+        if not _check(table):
+            continue
+        print(f"  {table:20} ...", end=" ")
+        try:
+            conn.execute(f"INSERT INTO {table} {query} {csv(table)}")
+            print(f"✅ {_count(table):,} lignes")
+        except Exception as e:
+            print(f"❌ {e}")
+
+    # ── 2. Sets (100 premiers) ───────────────────────────────────────────────
+
+    if _check("sets"):
+        print(f"  {'sets':20} ...", end=" ")
+        try:
+            conn.execute(f"""
+                INSERT INTO sets
+                SELECT set_num, name, year, theme_id, num_parts, img_url
+                FROM ({csv("sets")}) LIMIT 100
+            """)
+            print(f"✅ {_count('sets'):,} lignes")
+        except Exception as e:
+            print(f"❌ {e}")
+
+    # ── 3. Inventaires des sets chargés ─────────────────────────────────────
+
+    if _check("inventories"):
+        print(f"  {'inventories':20} ...", end=" ")
+        try:
+            conn.execute(f"""
+                INSERT INTO inventories
+                SELECT id, version, set_num
+                FROM ({csv("inventories")}) inv
+                WHERE inv.set_num IN (SELECT set_num FROM sets)
+            """)
+            print(f"✅ {_count('inventories'):,} lignes")
+        except Exception as e:
+            print(f"❌ {e}")
+
+    # ── 4. Pièces d'inventaire (FK commentées → on peut charger librement) ──
+
+    if _check("inventory_parts"):
+        print(f"  {'inventory_parts':20} ...", end=" ")
+        try:
+            conn.execute(f"""
+                INSERT INTO inventory_parts
+                SELECT inventory_id, part_num, color_id, quantity, is_spare
+                FROM ({csv("inventory_parts")}) ip
+                WHERE ip.inventory_id IN (SELECT id FROM inventories)
+            """)
+            print(f"✅ {_count('inventory_parts'):,} lignes")
+        except Exception as e:
+            print(f"❌ {e}")
+
+    # ── 5. Parts dérivées des inventory_parts (FK active → doit exister) ────
+
+    if _check("parts"):
+        print(f"  {'parts':20} ...", end=" ")
+        try:
+            conn.execute(f"""
+                INSERT INTO parts
+                SELECT part_num, name, part_cat_id
+                FROM ({csv("parts")}) p
+                WHERE p.part_num IN (
+                    SELECT DISTINCT part_num FROM inventory_parts
+                )
+            """)
+            print(f"✅ {_count('parts'):,} lignes")
+        except Exception as e:
+            print(f"❌ {e}")
+
+    # ── 6. Relations et éléments (filtrés sur les parts chargées) ────────────
+
+    if _check("part_relationships"):
+        print(f"  {'part_relationships':20} ...", end=" ")
+        try:
+            conn.execute(f"""
+                INSERT INTO part_relationships
+                SELECT rel_type, child_part_num, parent_part_num
+                FROM ({csv("part_relationships")}) pr
+                WHERE pr.child_part_num IN (SELECT part_num FROM parts)
+                  AND pr.parent_part_num IN (SELECT part_num FROM parts)
+            """)
+            print(f"✅ {_count('part_relationships'):,} lignes")
+        except Exception as e:
+            print(f"❌ {e}")
+
+    if _check("elements"):
+        print(f"  {'elements':20} ...", end=" ")
+        try:
+            conn.execute(f"""
+                INSERT INTO elements
+                SELECT element_id, part_num, color_id
+                FROM ({csv("elements")}) e
+                WHERE e.part_num IN (SELECT part_num FROM parts)
+                  AND e.color_id IN (SELECT id FROM colors)
+            """)
+            print(f"✅ {_count('elements'):,} lignes")
+        except Exception as e:
+            print(f"❌ {e}")
+
+    # ── 7. Tables d'inventaire restantes ─────────────────────────────────────
+
+    if _check("inventory_sets"):
+        print(f"  {'inventory_sets':20} ...", end=" ")
+        try:
+            conn.execute(f"""
+                INSERT INTO inventory_sets
+                SELECT inventory_id, set_num, quantity
+                FROM ({csv("inventory_sets")}) iset
+                WHERE iset.inventory_id IN (SELECT id FROM inventories)
+            """)
+            print(f"✅ {_count('inventory_sets'):,} lignes")
+        except Exception as e:
+            print(f"❌ {e}")
+
+    if _check("minifigs"):
+        print(f"  {'minifigs':20} ...", end=" ")
+        try:
+            conn.execute(
+                f"INSERT INTO minifigs SELECT fig_num, name, num_parts FROM ({csv('minifigs')}) LIMIT 50"
+            )
+            print(f"✅ {_count('minifigs'):,} lignes")
+        except Exception as e:
+            print(f"❌ {e}")
+
+    if _check("inventory_minifigs"):
+        print(f"  {'inventory_minifigs':20} ...", end=" ")
+        try:
+            conn.execute(f"""
+                INSERT INTO inventory_minifigs
+                SELECT inventory_id, fig_num, quantity
+                FROM ({csv("inventory_minifigs")}) im
+                WHERE im.inventory_id IN (SELECT id FROM inventories)
+            """)
+            print(f"✅ {_count('inventory_minifigs'):,} lignes")
+        except Exception as e:
+            print(f"❌ {e}")
+
+
+def generate_embeddings_if_available(conn):
+    """Génère les embeddings si sentence-transformers est installé.
+
+    Appelé à la fin de l'init — silencieusement ignoré si la dépendance manque.
+    """
+    try:
+        from app.database.duckdb.generate_embeddings import generate_embeddings
+
+        print("\n📐 Génération des embeddings (sentence-transformers détecté)...")
+        generate_embeddings(conn)
+    except ImportError:
+        print(
+            "\n⚠️  fastembed non installé — embeddings ignorés.\n"
+            "   Pour les activer : uv add fastembed\n"
+            "   puis relancer : python app/database/duckdb/generate_embeddings.py"
+        )
+
+
+def main(db_file, test_mode: bool = False):
+    """Initialise une base DuckDB.
+
+    Args:
+        db_file: Chemin du fichier .duckdb à créer.
+        test_mode: Si True, charge seulement un sous-ensemble de données
+                   (100 sets, parts dérivées) pour des tests rapides.
+    """
+    label = "TEST" if test_mode else "PRODUCTION"
+    print(f"INITIALISATION DE LA BASE DE DONNÉES LEGO [{label}]")
     print(f"\nConnexion à DuckDB ({db_file})...")
 
     conn = duckdb.connect(db_file)
@@ -191,7 +385,12 @@ def main(db_file):
         conn.close()
         return
 
-    load_data(conn)
+    if test_mode:
+        load_test_data(conn)
+    else:
+        load_data(conn)
+
+    generate_embeddings_if_available(conn)
 
     conn.close()
 
@@ -202,8 +401,8 @@ def main(db_file):
 if __name__ == "__main__":
     if not Path(DB_FILE).exists():
         print(f"📦 Création de {DB_FILE}")
-        main(DB_FILE)
+        main(DB_FILE, test_mode=False)
 
     if not Path(TEST_DB_FILE).exists():
-        print(f"🧪 Création de {TEST_DB_FILE}")
-        main(TEST_DB_FILE)
+        print(f"🧪 Création de {TEST_DB_FILE} (sous-ensemble de test)")
+        main(TEST_DB_FILE, test_mode=True)

@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS sets (
     year INTEGER,
     theme_id INTEGER,
     num_parts INTEGER,
+    img_url VARCHAR(200),
     FOREIGN KEY (theme_id) REFERENCES themes(id)
 );
 
@@ -92,6 +93,23 @@ CREATE TABLE IF NOT EXISTS inventory_minifigs (
     -- FOREIGN KEY (fig_num) REFERENCES minifigs(fig_num)
 );
 
+
+-- Tables d'embeddings pour la recherche vectorielle (VSS)
+-- Données dérivées calculées par generate_embeddings.py
+-- Stocke un vecteur FLOAT[384] par set/part (modèle all-MiniLM-L6-v2)
+-- Note : FLOAT[] viole strictement la 1NF mais est requis par l'extension DuckDB VSS.
+
+CREATE TABLE IF NOT EXISTS set_embeddings (
+    set_num VARCHAR(20) PRIMARY KEY,
+    embedding FLOAT[384],
+    FOREIGN KEY (set_num) REFERENCES sets(set_num)
+);
+
+CREATE TABLE IF NOT EXISTS part_embeddings (
+    part_num VARCHAR(20) PRIMARY KEY,
+    embedding FLOAT[384],
+    FOREIGN KEY (part_num) REFERENCES parts(part_num)
+);
 
 -- Index pour améliorer les performances
 
