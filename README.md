@@ -69,7 +69,9 @@ https://datalab.sspcloud.fr/launcher/databases/postgresql-cnpg?name=postgresql-c
 
 2) renseigner le nom d'utilisateur et le mot de passe du service dans le .env
 
-3) ouvrir un terminal et exécuter :
+3) Sur Onyxia : aller dans "Mon compte", puis "Connexion à Kubernetes". Copier le script et l'exécuter dans votre terminal.
+
+4) ouvrir un terminal et exécuter :
 
 ```bash
 kubectl get pods
@@ -82,13 +84,12 @@ echo $POD
 
 kubectl port-forward $POD 5432:5432
 ```
-4) Ouvrir un autre terminal et exécutez:
+5) Ouvrir un autre terminal et exécutez:
 
 ```python
 cd backend
 python app/database/postgres/init_db_user.py
 ```
-
 
 ### Cas où on veut accéder au port (autre utilisateur)
 
