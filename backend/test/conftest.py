@@ -8,6 +8,9 @@ import pytest
 from app.database.connexion_duckdb import DB_TEST_PATH
 from app.database.connexion_postgresql import PG_CONFIG, SCHEMA_TEST
 from app.database.dao.collection_dao import CollectionDAO
+from app.database.dao.favorite_dao import FavoriteDAO
+from app.database.dao.user_parts_dao import UserPartsDAO
+from app.database.dao.whishlist_dao import WishlistDAO
 
 
 # ---------------------------------------------------------------------------
@@ -21,9 +24,8 @@ def pg_conn():
     Ouvre UNE SEULE connexion PostgreSQL pour toute la session de tests.
 
     Au démarrage :
-      - Crée le schéma 'test' si absent
-      - Crée les tables (CREATE TABLE IF NOT EXISTS — idempotent)
-      - Vide les tables pour repartir d'un état propre
+      - Recrée le schéma 'test' depuis zéro (DROP + CREATE) pour garantir
+        la cohérence avec schema_user.sql
 
     En cours de session :
       - pg_rollback annule les données après chaque test
@@ -44,22 +46,11 @@ def pg_conn():
 
     try:
         with conn.cursor() as cur:
-            # Créer le schéma et les tables
-            cur.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA_TEST}")
+            # Recréer le schéma depuis zéro pour garantir la cohérence avec schema_user.sql
+            cur.execute(f"DROP SCHEMA IF EXISTS {SCHEMA_TEST} CASCADE")
+            cur.execute(f"CREATE SCHEMA {SCHEMA_TEST}")
             cur.execute(f"SET search_path TO {SCHEMA_TEST}")
             cur.execute(schema_path.read_text())
-            # Vider les tables pour repartir propre (données résiduelles d'une session précédente)
-            cur.execute("""
-                TRUNCATE TABLE
-                    user_parts,
-                    wishlist_sets,
-                    wishlist_parts,
-                    user_owned_sets,
-                    wishlist,
-                    favorite_sets,
-                    users
-                RESTART IDENTITY CASCADE
-            """)
         conn.commit()
     except Exception:
         conn.rollback()
@@ -106,6 +97,21 @@ def existing_user(pg_conn):
 @pytest.fixture()
 def dao_collection(pg_conn):
     return CollectionDAO(pg_conn)
+
+
+@pytest.fixture()
+def dao_favorite(pg_conn):
+    return FavoriteDAO(pg_conn)
+
+
+@pytest.fixture()
+def dao_user_parts(pg_conn):
+    return UserPartsDAO(pg_conn)
+
+
+@pytest.fixture()
+def dao_wishlist(pg_conn):
+    return WishlistDAO(pg_conn)
 
 
 # ---------------------------------------------------------------------------

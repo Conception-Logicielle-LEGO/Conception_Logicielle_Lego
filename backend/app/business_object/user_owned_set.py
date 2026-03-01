@@ -1,6 +1,3 @@
-from dataclasses import dataclass
-
-
 class UserOwnedSet:
     """
     Représente un set LEGO possédé par un utilisateur.
@@ -50,61 +47,3 @@ class UserOwnedSet:
     def mark_as_unbuilt(self):
         """Marquer le set comme non construit"""
         self.is_built = False
-
-
-@dataclass
-class UserSetWithDetails:
-    """
-    DTO (Data Transfer Object) enrichi pour l'API.
-    Combine les données de user_owned_sets + sets (JOIN SQL).
-
-    Utilisé pour retourner à l'API la liste complète des sets
-    d'un utilisateur avec tous les détails.
-    """
-
-    # Données user_owned_sets
-    id_user: int
-    set_num: str
-    is_built: bool
-
-    # Données sets (catalogue)
-    name: str
-    year: int
-    theme_id: int
-    num_parts: int
-    img_url: str | None = None
-
-    def __str__(self) -> str:
-        status = "✓" if self.is_built else "✗"
-        return f"{status} {self.name} ({self.set_num}) - {self.num_parts} pièces"
-
-    @classmethod
-    def from_dict(cls, data: dict):
-        """Créer depuis un résultat de JOIN SQL"""
-        return cls(
-            id_user=data["id_user"],
-            set_num=data["set_num"],
-            is_built=data["is_built"],
-            name=data["name"],
-            year=data["year"],
-            theme_id=data["theme_id"],
-            num_parts=data["num_parts"],
-            img_url=data.get("img_url"),
-        )
-
-    def to_dict(self) -> dict:
-        """Pour JSON API"""
-        return {
-            "user": {
-                "id_user": self.id_user,
-                "is_built": self.is_built,
-            },
-            "set": {
-                "set_num": self.set_num,
-                "name": self.name,
-                "year": self.year,
-                "theme_id": self.theme_id,
-                "num_parts": self.num_parts,
-                "img_url": self.img_url,
-            },
-        }
