@@ -25,7 +25,6 @@ class BuildableSet:
     year: int
     theme_id: int
     num_parts: int
-    img_url: str | None = None
 
     # Statistiques de matching
     total_parts_needed: int  # Nombre total de pièces uniques nécessaires
@@ -34,6 +33,9 @@ class BuildableSet:
 
     # Détails des pièces manquantes
     missing_parts_count: int  # Nombre de pièces uniques manquantes
+
+    # Champs optionnels (avec valeur par défaut — doivent être en dernier)
+    img_url: str | None = None
     missing_parts: list[dict] | None = None  # Liste détaillée (optionnel)
 
     def __str__(self) -> str:
