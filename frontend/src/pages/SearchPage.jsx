@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search } from 'lucide-react';
 import api from '../api/api_test';
-import { mockParts, themes, colors } from '../data/mockData';
+import { colors } from '../data/mockData';
 import SetCard from '../components/SetCard';
 import PieceCard from '../components/PieceCard';
 import Loader from '../components/Loader';
@@ -9,41 +9,72 @@ import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
 
+function useDebounce(value, delay = 400) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
+}
+
 export default function SearchPage() {
   const [tab, setTab] = useState('sets');
 
   // Sets state
-  const [allSets, setAllSets] = useState([]);
-  const [setsLoading, setSetsLoading] = useState(true);
+  const [sets, setSets] = useState([]);
+  const [setsLoading, setSetsLoading] = useState(false);
   const [setQuery, setSetQuery] = useState('');
   const [selectedTheme, setSelectedTheme] = useState('');
+  const debouncedSetQuery = useDebounce(setQuery);
+  const debouncedTheme = useDebounce(selectedTheme);
 
   // Parts state
+  const [parts, setParts] = useState([]);
+  const [partsLoading, setPartsLoading] = useState(false);
   const [partQuery, setPartQuery] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
+  const debouncedPartQuery = useDebounce(partQuery);
+  const debouncedColor = useDebounce(selectedColor);
 
+  // Chargement initial des sets récents
+  const initialLoad = useRef(false);
   useEffect(() => {
-    api.get('/sets/recent')
-      .then((r) => setAllSets(r.data))
-      .catch(() => setAllSets([]))
+    if (initialLoad.current) return;
+    initialLoad.current = true;
+    setSetsLoading(true);
+    api
+      .get('/sets/recent')
+      .then((r) => setSets(r.data))
+      .catch(() => setSets([]))
       .finally(() => setSetsLoading(false));
   }, []);
 
-  const filteredSets = allSets.filter((s) => {
-    const q = setQuery.toLowerCase();
-    const matchQuery =
-      !q || s.name?.toLowerCase().includes(q) || s.set_num?.toLowerCase().includes(q);
-    const matchTheme = !selectedTheme || s.theme_id === Number(selectedTheme);
-    return matchQuery && matchTheme;
-  });
+  // Recherche sets (déclenché par debounce)
+  useEffect(() => {
+    if (!debouncedSetQuery && !debouncedTheme) return;
+    setSetsLoading(true);
+    const params = { q: debouncedSetQuery, limit: 40 };
+    if (debouncedTheme) params.theme_id = debouncedTheme;
+    api
+      .get('/sets/search', { params })
+      .then((r) => setSets(r.data))
+      .catch(() => setSets([]))
+      .finally(() => setSetsLoading(false));
+  }, [debouncedSetQuery, debouncedTheme]);
 
-  const filteredParts = mockParts.filter((p) => {
-    const q = partQuery.toLowerCase();
-    const matchQuery =
-      !q || p.name.toLowerCase().includes(q) || p.part_num.toLowerCase().includes(q);
-    const matchColor = !selectedColor || p.color === selectedColor;
-    return matchQuery && matchColor;
-  });
+  // Recherche pièces
+  useEffect(() => {
+    if (!debouncedPartQuery && !debouncedColor) return;
+    setPartsLoading(true);
+    const params = { q: debouncedPartQuery, limit: 40 };
+    if (debouncedColor) params.color_id = debouncedColor;
+    api
+      .get('/parts/search', { params })
+      .then((r) => setParts(r.data))
+      .catch(() => setParts([]))
+      .finally(() => setPartsLoading(false));
+  }, [debouncedPartQuery, debouncedColor]);
 
   return (
     <div className="space-y-6">
@@ -70,28 +101,17 @@ export default function SearchPage() {
                 onChange={(e) => setSetQuery(e.target.value)}
               />
             </div>
-            <Select
-              className="sm:w-48"
-              value={selectedTheme}
-              onChange={(e) => setSelectedTheme(e.target.value)}
-            >
-              {themes.map((t) => (
-                <option key={t.id} value={t.id === 1 ? '' : t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </Select>
           </div>
 
           {setsLoading ? (
             <Loader message="Chargement des sets…" />
-          ) : filteredSets.length === 0 ? (
+          ) : sets.length === 0 ? (
             <p className="py-12 text-center text-gray-500">Aucun set trouvé.</p>
           ) : (
             <>
-              <p className="mb-3 text-sm text-gray-500">{filteredSets.length} set(s)</p>
+              <p className="mb-3 text-sm text-gray-500">{sets.length} set(s)</p>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {filteredSets.map((set) => (
+                {sets.map((set) => (
                   <SetCard key={set.set_num} set={set} />
                 ))}
               </div>
@@ -117,20 +137,24 @@ export default function SearchPage() {
               onChange={(e) => setSelectedColor(e.target.value)}
             >
               {colors.map((c) => (
-                <option key={c.id} value={c.id === 1 ? '' : c.name}>
+                <option key={c.id} value={c.id === 1 ? '' : c.id}>
                   {c.name}
                 </option>
               ))}
             </Select>
           </div>
 
-          {filteredParts.length === 0 ? (
-            <p className="py-12 text-center text-gray-500">Aucune pièce trouvée.</p>
+          {partsLoading ? (
+            <Loader message="Chargement des pièces…" />
+          ) : parts.length === 0 ? (
+            <p className="py-12 text-center text-gray-500">
+              {partQuery ? 'Aucune pièce trouvée.' : 'Entrez un terme de recherche.'}
+            </p>
           ) : (
             <>
-              <p className="mb-3 text-sm text-gray-500">{filteredParts.length} pièce(s)</p>
+              <p className="mb-3 text-sm text-gray-500">{parts.length} pièce(s)</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredParts.map((part) => (
+                {parts.map((part) => (
                   <PieceCard key={part.part_num} part={part} />
                 ))}
               </div>
