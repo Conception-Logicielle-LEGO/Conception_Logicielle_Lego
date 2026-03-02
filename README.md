@@ -32,6 +32,10 @@ cd backend
 uv venv
 uv sync
 ```
+lancer la commande 
+source .venv/bin/activate
+
+
 ## Requirements :
 Géré par le Dockerfile et pyproject.toml
 Pour ajouter un package aux requirements, écrire "uv add <nom package>" dans le bash
@@ -54,6 +58,8 @@ echo $PYTHONPATH
 ## BDD rebrickable (duckDB local) :
 
 Exécuter (toujours depuis backend)
+# pour les urls image
+Rebrickable API (https://rebrickable.com/api/ → Mon compte -> setting -> API → Clé API)
 
 ```python
 python app/database/duckdb/init_db_lego.py
