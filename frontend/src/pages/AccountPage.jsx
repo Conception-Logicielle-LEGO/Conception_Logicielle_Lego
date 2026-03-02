@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router';
-import { Heart, Bookmark, User, Package, Hammer, Box, Trash2 } from 'lucide-react';
+import { Heart, Bookmark, User, Package, Hammer, Box, Trash2, Plus, Minus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
@@ -64,6 +64,39 @@ export default function AccountPage() {
       return acc;
     }, {})
   );
+
+  function updateOwnedQty(part_num, color_id, is_used, delta) {
+    const field = is_used ? 'qty_used' : 'qty_libre';
+    setOwnedParts((prev) => {
+      const current = groupedParts.find((p) => p.part_num === part_num && p.color_id === color_id);
+      if (!current) return prev;
+      const newQty = Math.max(1, (current[field] ?? 0) + delta);
+      api
+        .put(`/users/${user.id}/parts/${part_num}/${color_id}`, { quantity: newQty, is_used })
+        .catch(() => {});
+      return prev.map((row) =>
+        row.part_num === part_num && row.color_id === color_id && row.is_used === is_used
+          ? { ...row, quantity: newQty }
+          : row
+      );
+    });
+  }
+
+  function updateWishlistQty(part_num, color_id, delta) {
+    setWishlistParts((prev) => {
+      const part = prev.find((p) => p.part_num === part_num && p.color_id === color_id);
+      if (!part) return prev;
+      const newQty = Math.max(1, (part.quantity ?? 1) + delta);
+      api
+        .put(`/users/${user.id}/wishlist/parts/${part_num}/${color_id}`, { quantity: newQty })
+        .catch(() => {});
+      return prev.map((p) =>
+        p.part_num === part_num && p.color_id === color_id
+          ? { ...p, quantity: newQty }
+          : p
+      );
+    });
+  }
 
   if (isLoading) return null;
   if (!user) return null;
@@ -158,38 +191,71 @@ export default function AccountPage() {
                   {groupedParts.map((p) => (
                     <li
                       key={`${p.part_num}-${p.color_id}`}
-                      className="flex items-center justify-between py-2.5 text-sm"
+                      className="flex items-start gap-3 py-3 text-sm"
                     >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded overflow-hidden bg-gray-100">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded overflow-hidden bg-gray-100">
                         {p.img_url ? (
                           <img src={p.img_url} alt={p.name} className="h-full w-full object-contain" />
                         ) : (
                           <Package size={16} className="text-gray-400" />
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="font-medium text-gray-800 truncate block">{p.name}</span>
+                      <div className="flex flex-1 min-w-0 flex-col gap-1">
+                        <span className="font-medium text-gray-800 truncate">{p.name}</span>
                         <span className="text-xs text-gray-500">#{p.part_num} — Couleur #{p.color_id}</span>
+                        <div className="flex flex-col gap-1 mt-1">
+                          {p.qty_libre > 0 && (
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-16 text-xs text-gray-500">Libres</span>
+                              <button
+                                onClick={() => updateOwnedQty(p.part_num, p.color_id, false, -1)}
+                                disabled={p.qty_libre <= 1}
+                                className="flex h-5 w-5 items-center justify-center rounded border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-30"
+                              >
+                                <Minus size={10} />
+                              </button>
+                              <span className="w-6 text-center text-xs font-medium">{p.qty_libre}</span>
+                              <button
+                                onClick={() => updateOwnedQty(p.part_num, p.color_id, false, 1)}
+                                className="flex h-5 w-5 items-center justify-center rounded border border-gray-200 text-gray-500 hover:bg-gray-100"
+                              >
+                                <Plus size={10} />
+                              </button>
+                            </div>
+                          )}
+                          {p.qty_used > 0 && (
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-16 text-xs text-gray-500">Utilisées</span>
+                              <button
+                                onClick={() => updateOwnedQty(p.part_num, p.color_id, true, -1)}
+                                disabled={p.qty_used <= 1}
+                                className="flex h-5 w-5 items-center justify-center rounded border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-30"
+                              >
+                                <Minus size={10} />
+                              </button>
+                              <span className="w-6 text-center text-xs font-medium">{p.qty_used}</span>
+                              <button
+                                onClick={() => updateOwnedQty(p.part_num, p.color_id, true, 1)}
+                                className="flex h-5 w-5 items-center justify-center rounded border border-gray-200 text-gray-500 hover:bg-gray-100"
+                              >
+                                <Plus size={10} />
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3 shrink-0 ml-3">
-                        <span className="text-xs text-gray-500">
-                          {p.qty_libre > 0 && <span>{p.qty_libre} libre{p.qty_libre > 1 ? 's' : ''}</span>}
-                          {p.qty_libre > 0 && p.qty_used > 0 && <span> / </span>}
-                          {p.qty_used > 0 && <span>{p.qty_used} utilisée{p.qty_used > 1 ? 's' : ''}</span>}
-                        </span>
-                        <button
-                          onClick={async () => {
-                            await api.delete(`/users/${user.id}/parts/${p.part_num}/${p.color_id}`).catch(() => {});
-                            setOwnedParts((prev) =>
-                              prev.filter((r) => !(r.part_num === p.part_num && r.color_id === p.color_id))
-                            );
-                          }}
-                          title="Supprimer"
-                          className="flex items-center justify-center rounded-md px-1.5 py-1 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
+                      <button
+                        onClick={async () => {
+                          await api.delete(`/users/${user.id}/parts/${p.part_num}/${p.color_id}`).catch(() => {});
+                          setOwnedParts((prev) =>
+                            prev.filter((r) => !(r.part_num === p.part_num && r.color_id === p.color_id))
+                          );
+                        }}
+                        title="Supprimer"
+                        className="flex items-center justify-center rounded-md px-1.5 py-1 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                      >
+                        <Trash2 size={13} />
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -271,11 +337,49 @@ export default function AccountPage() {
                       {wishlistParts.map((part) => (
                         <li
                           key={`${part.part_num}-${part.color_id}`}
-                          className="flex items-center justify-between py-2 text-sm"
+                          className="flex items-start gap-3 py-3 text-sm"
                         >
-                          <span className="font-mono text-gray-700">{part.part_num}</span>
-                          <span className="text-gray-500">Couleur #{part.color_id}</span>
-                          <span className="font-medium">x{part.quantity}</span>
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded overflow-hidden bg-gray-100">
+                            {part.img_url ? (
+                              <img src={part.img_url} alt={part.name ?? part.part_num} className="h-full w-full object-contain" />
+                            ) : (
+                              <Package size={16} className="text-gray-400" />
+                            )}
+                          </div>
+                          <div className="flex flex-1 min-w-0 flex-col gap-1">
+                            <span className="font-medium text-gray-800 truncate">
+                              {part.name ?? part.part_num}
+                            </span>
+                            <span className="text-xs text-gray-500">#{part.part_num} — Couleur #{part.color_id}</span>
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <button
+                                onClick={() => updateWishlistQty(part.part_num, part.color_id, -1)}
+                                disabled={part.quantity <= 1}
+                                className="flex h-5 w-5 items-center justify-center rounded border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-30"
+                              >
+                                <Minus size={10} />
+                              </button>
+                              <span className="w-6 text-center text-xs font-medium">{part.quantity}</span>
+                              <button
+                                onClick={() => updateWishlistQty(part.part_num, part.color_id, 1)}
+                                className="flex h-5 w-5 items-center justify-center rounded border border-gray-200 text-gray-500 hover:bg-gray-100"
+                              >
+                                <Plus size={10} />
+                              </button>
+                            </div>
+                          </div>
+                          <button
+                            onClick={async () => {
+                              await api.delete(`/users/${user.id}/wishlist/parts/${part.part_num}/${part.color_id}`).catch(() => {});
+                              setWishlistParts((prev) =>
+                                prev.filter((p) => !(p.part_num === part.part_num && p.color_id === part.color_id))
+                              );
+                            }}
+                            title="Supprimer"
+                            className="flex items-center justify-center rounded-md px-1.5 py-1 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                          >
+                            <Trash2 size={13} />
+                          </button>
                         </li>
                       ))}
                     </ul>
