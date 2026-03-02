@@ -1,106 +1,133 @@
-from backend.app.database.connexion_duckdb import DB_TEST_PATH, get_connection
-from dotenv import load_dotenv
+from pathlib import Path
+
+import duckdb
+import psycopg2
+import psycopg2.extras
 import pytest
 
-from app.database.dao.user_dao import UserDAO
+from app.database.connexion_duckdb import DB_TEST_PATH
+from app.database.connexion_postgresql import PG_CONFIG, SCHEMA_TEST
+from app.database.dao.collection_dao import CollectionDAO
+from app.database.dao.favorite_dao import FavoriteDAO
+from app.database.dao.user_parts_dao import UserPartsDAO
+from app.database.dao.whishlist_dao import WishlistDAO
 
 
-load_dotenv()
+# ---------------------------------------------------------------------------
+# PostgreSQL — connexion unique partagée sur toute la session
+# ---------------------------------------------------------------------------
 
 
 @pytest.fixture(scope="session")
-def init_test_db():
+def pg_conn():
     """
-    Initialise la base de données de test une seule fois par session
+    Ouvre UNE SEULE connexion PostgreSQL pour toute la session de tests.
+
+    Au démarrage :
+      - Recrée le schéma 'test' depuis zéro (DROP + CREATE) pour garantir
+        la cohérence avec schema_user.sql
+
+    En cours de session :
+      - pg_rollback annule les données après chaque test
     """
-    # Supprimer l'ancienne base de test si elle existe
-    if DB_TEST_PATH.exists():
-        DB_TEST_PATH.unlink()
+    schema_path = (
+        Path(__file__).parent.parent
+        / "app"
+        / "database"
+        / "postgres"
+        / "schema_user.sql"
+    )
 
-    # Initialiser la base de test
-    from backend.app.database.duckdb import init_db_lego
+    conn = psycopg2.connect(
+        **PG_CONFIG,
+        options=f"-c search_path={SCHEMA_TEST}",
+        cursor_factory=psycopg2.extras.RealDictCursor,
+    )
 
-    test_db_file = "lego_test.duckdb"
-    init_db_lego.main(test_db_file)
+    try:
+        with conn.cursor() as cur:
+            # Recréer le schéma depuis zéro pour garantir la cohérence avec schema_user.sql
+            cur.execute(f"DROP SCHEMA IF EXISTS {SCHEMA_TEST} CASCADE")
+            cur.execute(f"CREATE SCHEMA {SCHEMA_TEST}")
+            cur.execute(f"SET search_path TO {SCHEMA_TEST}")
+            cur.execute(schema_path.read_text())
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        conn.close()
+        raise
 
-    yield
-
-    # Optionnel : nettoyer après tous les tests
-    # if DB_TEST_PATH.exists():
-    #     DB_TEST_PATH.unlink()
-
-
-@pytest.fixture(scope="function")
-def db_connection_test():  # init_test_db en paramètre ?
-    """
-    Fournit une connexion DuckDB pour chaque test
-    La connexion est automatiquement fermée après le test
-    """
-    conn = get_connection(read_only=False, test=True)
     yield conn
+
     conn.close()
 
 
-@pytest.fixture(scope="function")
-def clean_user_tables(db_connection_test):
+@pytest.fixture(autouse=True)
+def pg_rollback(pg_conn):
     """
-    Nettoie uniquement les tables utilisateur avant chaque test
-    Laisse les données Rebrickable intactes
+    Rollback AVANT et APRÈS chaque test.
+
+    - Avant : remet la connexion dans un état propre si le test précédent
+      a laissé la transaction en état 'aborted' (ex: UniqueViolation).
+    - Après : annule les données écrites pendant le test.
     """
-    user_tables = ["user_parts", "user_owned_sets", "favorite_sets", "users"]
-
-    for table in user_tables:
-        try:
-            db_connection_test.execute(f"DELETE FROM {table}")
-        except Exception as e:
-            print(f"Erreur lors du nettoyage de {table}: {e}")
-            raise
-
-    # Réinitialiser la séquence des IDs utilisateurs
-    try:
-        db_connection_test.execute("ALTER SEQUENCE users_id_seq RESTART WITH 1")
-    except Exception as e:
-        print(f"Erreur lors de la réinitialisation de la séquence: {e}")
-
-    yield db_connection_test
+    pg_conn.rollback()  # <-- nettoyage AVANT le test
+    yield
+    pg_conn.rollback()  # <-- nettoyage APRÈS le test
 
 
-@pytest.fixture(scope="function")
-def clean_all_tables(db_connection_test):
+@pytest.fixture()
+def existing_user(pg_conn):
     """
-    Nettoie TOUTES les tables (y compris Rebrickable)
-    À utiliser seulement si nécessaire car c'est plus lent
+    Insère un utilisateur de test et retourne son id_user.
+    Nettoyé automatiquement par pg_rollback.
     """
-    # Ordre pour respecter les contraintes de clés étrangères
-    all_tables = [
-        "user_parts",
-        "user_owned_sets",
-        "favorite_sets",
-        "users",
-        "inventory_minifigs",
-        "inventory_sets",
-        "inventory_parts",
-        "inventories",
-        "minifigs",
-        "sets",
-        "elements",
-        "part_relationships",
-        "parts",
-        "part_categories",
-        "colors",
-        "themes",
-    ]
-
-    for table in all_tables:
-        try:
-            db_connection_test.execute(f"DELETE FROM {table}")
-        except Exception as e:
-            print(f"Erreur lors du nettoyage de {table}: {e}")
-            raise
-
-    yield db_connection_test
+    with pg_conn.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO users (username, hashed_password, email)
+            VALUES (%s, %s, %s)
+            RETURNING id_user
+            """,
+            ("test_user", "hashed_pw_placeholder", "test@lego.com"),
+        )
+        return cur.fetchone()["id_user"]
 
 
-@pytest.fixture
-def user_dao(db_connection_test):
-    return UserDAO(db_connection_test)
+@pytest.fixture()
+def dao_collection(pg_conn):
+    return CollectionDAO(pg_conn)
+
+
+@pytest.fixture()
+def dao_favorite(pg_conn):
+    return FavoriteDAO(pg_conn)
+
+
+@pytest.fixture()
+def dao_user_parts(pg_conn):
+    return UserPartsDAO(pg_conn)
+
+
+@pytest.fixture()
+def dao_wishlist(pg_conn):
+    return WishlistDAO(pg_conn)
+
+
+# ---------------------------------------------------------------------------
+# DuckDB
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="session")
+def duckdb_conn():
+    """
+    Connexion DuckDB en lecture seule sur la base de test (lego_test.duckdb).
+    Connexion unique pour toute la session (DuckDB read-only = pas d'isolation nécessaire).
+    """
+    if not DB_TEST_PATH.exists():
+        pytest.skip(f"Base DuckDB de test introuvable : {DB_TEST_PATH}")
+
+    conn = duckdb.connect(str(DB_TEST_PATH), read_only=True)
+    yield conn
+    conn.close()
