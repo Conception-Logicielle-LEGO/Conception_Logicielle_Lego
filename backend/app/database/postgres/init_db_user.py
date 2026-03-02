@@ -12,12 +12,21 @@ import psycopg2
 from app.database.connexion_postgresql import PG_CONFIG, SCHEMA_PROD, SCHEMA_TEST
 
 
+_SEED_SQL = """
+INSERT INTO users (username, hashed_password)
+VALUES ('testuser', 'noop')
+ON CONFLICT DO NOTHING;
+"""
+
+
 def _init_schema(cur, schema: str, schema_sql: str) -> None:
     """Initialise un schéma donné en réutilisant un curseur existant."""
     print(f"🐘 Initialisation de PostgreSQL (schéma : {schema})...")
-    cur.execute(f"CREATE SCHEMA IF NOT EXISTS {schema}")
+    cur.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE")
+    cur.execute(f"CREATE SCHEMA {schema}")
     cur.execute(f"SET search_path TO {schema}")
     cur.execute(schema_sql)
+    cur.execute(_SEED_SQL)
     print(f"✅ Base PostgreSQL initialisée (schéma : {schema})")
 
 

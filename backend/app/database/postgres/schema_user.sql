@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS user_owned_sets (
 );
 
 -- Table des pièces des utilisateurs
+-- Une ligne par (user, part, color, is_used) : libres et utilisées séparément
 CREATE TABLE IF NOT EXISTS user_parts (
     id_user INTEGER NOT NULL,
     part_num VARCHAR(20) NOT NULL,
@@ -76,7 +77,7 @@ CREATE TABLE IF NOT EXISTS user_parts (
     status VARCHAR(20) CHECK (status IN ('owned', 'wished')) DEFAULT 'owned',
     is_used BOOLEAN DEFAULT FALSE,
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id_user, part_num, color_id),
+    PRIMARY KEY (id_user, part_num, color_id, is_used),
     FOREIGN KEY (id_user) REFERENCES users(id_user) ON DELETE CASCADE
     -- Pas de FK vers parts(part_num) car dans DuckDB
     -- Pas de FK vers colors(id) car dans DuckDB

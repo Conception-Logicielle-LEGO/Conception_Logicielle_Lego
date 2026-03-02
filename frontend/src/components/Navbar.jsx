@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router';
-import { Home, Search, User, LogIn, LogOut } from 'lucide-react';
+import { Home, Search, User, LogIn, LogOut, Wrench } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
 import { cn } from '../lib/utils';
@@ -7,6 +7,7 @@ import { cn } from '../lib/utils';
 const navLinks = [
   { to: '/', label: 'Catalogue', icon: Home },
   { to: '/search', label: 'Recherche', icon: Search },
+  { to: '/buildable', label: 'Constructibles', icon: Wrench },
   { to: '/account', label: 'Mon compte', icon: User },
 ];
 
@@ -19,7 +20,7 @@ export default function Navbar() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 font-bold text-red-600 text-xl">
-          <span className="text-2xl">🧱</span>
+          <span className="text-2xl">🧱🐟</span>
           LEGO Finder
         </Link>
 

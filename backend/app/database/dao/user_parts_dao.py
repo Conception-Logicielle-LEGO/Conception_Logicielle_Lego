@@ -2,52 +2,95 @@
 
 
 class UserPartsDAO:
-    """DAO pour gérer les pièces possédées ou souhaitées par un utilisateur."""
+    """DAO pour gérer les pièces possédées ou souhaitées par un utilisateur.
+
+    IMPORTANT : ce DAO ne fait jamais de commit() explicite.
+    La gestion des transactions (commit/rollback) est déléguée à l'appelant.
+    """
 
     def __init__(self, connection):
-        """
-        Initialise le DAO avec une connexion à la base de données.
-
-        Args:
-            connection: Connexion DuckDB ou PostgreSQL
-        """
         self.connection = connection
 
     def add_part(
-        self, user_id: int, part_num: str, color_id: int, status: str, quantity: int
+        self,
+        user_id: int,
+        part_num: str,
+        color_id: int,
+        status: str,
+        quantity: int,
+        is_used: bool = False,
     ):
-        """
-        Ajoute une pièce à la collection ou wishlist d'un utilisateur.
+        """Ajoute ou incrémente une pièce dans user_parts.
 
-        Args:
-            user_id: ID de l'utilisateur
-            part_num: Numéro de référence de la pièce
-            color_id: ID de la couleur
-            status: Statut de la pièce ('owned' ou 'wished')
-            quantity: Quantité de pièces
+        En cas de conflit (même user/part/color), additionne les quantités
+        et met à jour is_used.
         """
-        pass
-
-    def get_owned_parts(self, user_id: int):
+        query = """
+            INSERT INTO user_parts (id_user, part_num, color_id, status, quantity, is_used)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT (id_user, part_num, color_id, is_used)
+            DO UPDATE SET
+                quantity = user_parts.quantity + EXCLUDED.quantity
+            RETURNING id_user, part_num, color_id, status, quantity, is_used
         """
-        Récupère toutes les pièces possédées par un utilisateur.
+        with self.connection.cursor() as cur:
+            cur.execute(query, (user_id, part_num, color_id, status, quantity, is_used))
+            result = cur.fetchone()
+            return dict(result) if result else None
 
-        Args:
-            user_id: ID de l'utilisateur
+    def remove_part(self, user_id: int, part_num: str, color_id: int) -> bool:
+        """Supprime une pièce de user_parts.
 
         Returns:
-            Liste des pièces avec leurs quantités
+            True si supprimé, False si inexistant.
         """
-        pass
-
-    def get_wished_parts(self, user_id: int):
+        query = """
+            DELETE FROM user_parts
+            WHERE id_user = %s AND part_num = %s AND color_id = %s
         """
-        Récupère toutes les pièces souhaitées par un utilisateur.
+        with self.connection.cursor() as cur:
+            cur.execute(query, (user_id, part_num, color_id))
+            return cur.rowcount > 0
 
-        Args:
-            user_id: ID de l'utilisateur
+    def get_owned_parts(self, user_id: int) -> list[dict]:
+        """Récupère toutes les pièces possédées (status='owned')."""
+        query = """
+            SELECT id_user, part_num, color_id, quantity, status, is_used
+            FROM user_parts
+            WHERE id_user = %s AND status = 'owned'
+            ORDER BY part_num, color_id, is_used
+        """
+        with self.connection.cursor() as cur:
+            cur.execute(query, (user_id,))
+            rows = cur.fetchall()
+            return [dict(row) for row in rows]
+
+    def get_wished_parts(self, user_id: int) -> list[dict]:
+        """Récupère toutes les pièces souhaitées (status='wished')."""
+        query = """
+            SELECT id_user, part_num, color_id, quantity, status
+            FROM user_parts
+            WHERE id_user = %s AND status = 'wished'
+            ORDER BY part_num, color_id
+        """
+        with self.connection.cursor() as cur:
+            cur.execute(query, (user_id,))
+            rows = cur.fetchall()
+            return [dict(row) for row in rows]
+
+    def update_quantity(
+        self, user_id: int, part_num: str, color_id: int, quantity: int
+    ) -> bool:
+        """Met à jour la quantité d'une pièce.
 
         Returns:
-            Liste des pièces souhaitées avec leurs quantités
+            True si mis à jour, False si la pièce n'existe pas.
         """
-        pass
+        query = """
+            UPDATE user_parts
+            SET quantity = %s
+            WHERE id_user = %s AND part_num = %s AND color_id = %s
+        """
+        with self.connection.cursor() as cur:
+            cur.execute(query, (quantity, user_id, part_num, color_id))
+            return cur.rowcount > 0
