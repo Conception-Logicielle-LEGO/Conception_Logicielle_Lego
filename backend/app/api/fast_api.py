@@ -54,7 +54,7 @@ def run_app():
     - Port 8000
     - Reload enabled for development
     """
-    uvicorn.run("backend.app.api.fast_api:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.api.fast_api:app", host="0.0.0.0", port=8000, reload=True)
 
 
 # ---------------------------------------------------------------------------
