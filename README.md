@@ -61,6 +61,7 @@ Exécuter (toujours depuis backend)
 # pour les urls image
 Rebrickable API (https://rebrickable.com/api/ → Mon compte -> setting -> API → Clé API)
 
+
 ```python
 python app/database/duckdb/init_db_lego.py
 ```
@@ -99,8 +100,12 @@ python app/database/postgres/init_db_user.py
 
 ### Cas où on veut accéder au port (autre utilisateur)
 
-TODO
+Exécuter à la racine du projet :
 
+```bash
+kubectl apply -f kubernetes/pg-proxy.yaml
+kubectl port-forward pod/pg-proxy 5432:5432
+```
 
 
 # Mise en place frontend
