@@ -1,5 +1,4 @@
-from backend.app.api.user_controller import run_app
-
+from app.api.fast_api import run_app
 from environment_printer import EnvironmentPrinter
 
 

@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import psycopg2
 import psycopg2.extras
 from pydantic import BaseModel
+import uvicorn
 
 from app.database.connexion_duckdb import DB_PATH
 from app.database.connexion_postgresql import PG_CONFIG
@@ -40,6 +41,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ---------------------------------------------------------------------------
+# Lien avec le main
+# ---------------------------------------------------------------------------
+
+
+def run_app():
+    """
+    Starts the FastAPI application using Uvicorn.
+    - Runs on host 0.0.0.0 (accessible from outside container)
+    - Port 8000
+    - Reload enabled for development
+    """
+    uvicorn.run("backend.app.api.fast_api:app", host="0.0.0.0", port=8000, reload=True)
 
 
 # ---------------------------------------------------------------------------
