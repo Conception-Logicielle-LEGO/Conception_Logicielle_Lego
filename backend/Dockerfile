@@ -7,4 +7,4 @@ RUN uv sync
 
 COPY . /backend
 
-ENTRYPOINT ["uv", "run","backend.main.py"] 
+ENTRYPOINT ["uv", "run","/backend/main.py"] 
