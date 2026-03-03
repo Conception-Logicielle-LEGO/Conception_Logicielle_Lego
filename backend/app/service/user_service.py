@@ -16,15 +16,19 @@ class UserService:
         ---------
         User | None : l'utilisateur créé avec son id_user, ou None en cas d'erreur
         """
-        password_service = PasswordService(user_dao=self.user_dao)
-        salt = password_service.create_salt()
-        hashed_password = hash_password(password, salt)
-        new_user = User(username=username, hashed_password=hashed_password, salt=salt)
+        passwordservice = PasswordService(user_dao=self.user_dao)
+        salt = passwordservice.create_salt()
+        hashed_password = hash_password(password)
+
+        new_user = User(
+            username=username,
+            hashed_password=hashed_password,
+            salt=salt,
+        )
+
         return self.user_dao.create_user(new_user)
 
-    def change_password(
-        self, username: str, old_password: str, new_password: str
-    ) -> bool:
+    def change_password(self, username, old_password, new_password):
         """
         Change le mot de passe après validation de l'ancien.
 
