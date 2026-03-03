@@ -13,6 +13,7 @@ def make_service():
 # Test get_favorites
 # -------------------------
 
+
 def test_get_favorites():
     service, dao, _ = make_service()
     dao.get_user_favorites.return_value = [{"set_num": "1234-1"}]
@@ -24,6 +25,7 @@ def test_get_favorites():
 # -------------------------
 # Test add_favorite
 # -------------------------
+
 
 def test_add_favorite_success():
     service, dao, conn = make_service()
@@ -45,6 +47,7 @@ def test_add_favorite_doublon():
 # -------------------------
 # Test remove_favorite
 # -------------------------
+
 
 def test_remove_favorite():
     service, dao, conn = make_service()

@@ -13,6 +13,7 @@ def make_service():
 # Test get_collection
 # -------------------------
 
+
 def test_get_collection():
     service, dao, _ = make_service()
     dao.get_user_collection.return_value = ["set1", "set2"]
@@ -24,6 +25,7 @@ def test_get_collection():
 # -------------------------
 # Test add_set
 # -------------------------
+
 
 def test_add_set_success():
     service, dao, conn = make_service()
@@ -46,6 +48,7 @@ def test_add_set_doublon():
 # Test remove_set
 # -------------------------
 
+
 def test_remove_set():
     service, dao, conn = make_service()
     dao.remove_set_from_collection.return_value = True
@@ -58,6 +61,7 @@ def test_remove_set():
 # -------------------------
 # Test mark_built
 # -------------------------
+
 
 def test_mark_built_true():
     service, dao, conn = make_service()

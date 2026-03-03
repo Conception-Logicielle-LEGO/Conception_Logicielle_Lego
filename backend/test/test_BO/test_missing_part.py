@@ -44,8 +44,16 @@ def test_to_dict_basic():
 
 
 def test_to_dict_with_details():
-    mp = MissingPart(part_num="3001", color_id=4, needed=5, owned=2, missing=3,
-                     part_name="Brick", color_name="Red", color_rgb="FF0000")
+    mp = MissingPart(
+        part_num="3001",
+        color_id=4,
+        needed=5,
+        owned=2,
+        missing=3,
+        part_name="Brick",
+        color_name="Red",
+        color_rgb="FF0000",
+    )
     d = mp.to_dict()
     assert "details" in d
     assert d["details"]["part_name"] == "Brick"
@@ -53,8 +61,15 @@ def test_to_dict_with_details():
 
 
 def test_str_with_part_name_and_color():
-    mp = MissingPart(part_num="3001", color_id=4, needed=5, owned=2, missing=3,
-                     part_name="Brick", color_name="Red")
+    mp = MissingPart(
+        part_num="3001",
+        color_id=4,
+        needed=5,
+        owned=2,
+        missing=3,
+        part_name="Brick",
+        color_name="Red",
+    )
     assert "Brick" in str(mp)
     assert "Red" in str(mp)
     assert "3" in str(mp)

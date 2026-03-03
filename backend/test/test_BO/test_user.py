@@ -37,4 +37,9 @@ def test_user_from_dict_missing_id():
 def test_user_to_dict():
     user = User(username="john", hashed_password="hash", salt="salt", id_user=1)
     d = user.to_dict()
-    assert d == {"id_user": 1, "username": "john", "hashed_password": "hash", "salt": "salt"}
+    assert d == {
+        "id_user": 1,
+        "username": "john",
+        "hashed_password": "hash",
+        "salt": "salt",
+    }

@@ -12,10 +12,13 @@ def make_service():
 # Test search_sets
 # -------------------------
 
+
 def test_search_sets():
     service, dao = make_service()
     dao.search_sets.return_value = [{"set_num": "1234-1", "name": "Castle"}]
-    result = service.search_sets(query="castle", theme_id=1, year_from=2000, year_to=2020, limit=10)
+    result = service.search_sets(
+        query="castle", theme_id=1, year_from=2000, year_to=2020, limit=10
+    )
     dao.search_sets.assert_called_once_with("castle", 1, 2000, 2020, 10)
     assert len(result) == 1
 
@@ -23,6 +26,7 @@ def test_search_sets():
 # -------------------------
 # Test search_parts
 # -------------------------
+
 
 def test_search_parts():
     service, dao = make_service()
@@ -36,6 +40,7 @@ def test_search_parts():
 # Test get_recent_sets
 # -------------------------
 
+
 def test_get_recent_sets():
     service, dao = make_service()
     dao.get_recent_sets.return_value = [{"set_num": "9999-1"}]
@@ -47,6 +52,7 @@ def test_get_recent_sets():
 # -------------------------
 # Test get_stats
 # -------------------------
+
 
 def test_get_stats():
     service, dao = make_service()

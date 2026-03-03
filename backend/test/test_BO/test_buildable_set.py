@@ -24,11 +24,15 @@ def test_is_buildable_false():
 
 
 def test_is_almost_buildable_above_threshold():
-    assert make_buildable_set(completion=85.0).is_almost_buildable(threshold=80.0) is True
+    assert (
+        make_buildable_set(completion=85.0).is_almost_buildable(threshold=80.0) is True
+    )
 
 
 def test_is_almost_buildable_below_threshold():
-    assert make_buildable_set(completion=70.0).is_almost_buildable(threshold=80.0) is False
+    assert (
+        make_buildable_set(completion=70.0).is_almost_buildable(threshold=80.0) is False
+    )
 
 
 def test_get_priority_score_buildable():
@@ -50,10 +54,15 @@ def test_get_priority_score_penalty_capped():
 
 def test_from_dict():
     data = {
-        "set_num": "1234-1", "name": "Castle", "year": 2000,
-        "theme_id": 1, "num_parts": 50,
-        "total_parts_needed": 10, "parts_owned": 10,
-        "completion_percentage": 100.0, "missing_parts_count": 0,
+        "set_num": "1234-1",
+        "name": "Castle",
+        "year": 2000,
+        "theme_id": 1,
+        "num_parts": 50,
+        "total_parts_needed": 10,
+        "parts_owned": 10,
+        "completion_percentage": 100.0,
+        "missing_parts_count": 0,
     }
     s = BuildableSet.from_dict(data)
     assert s.set_num == "1234-1"
