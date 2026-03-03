@@ -1,3 +1,4 @@
+import threading
 from typing import Annotated
 
 import duckdb
@@ -10,25 +11,33 @@ from app.database.connexion_postgresql import PG_CONFIG
 
 
 _pg_conn: psycopg2.extensions.connection | None = None
+_pg_lock = threading.Lock()
 
 
-def get_pg():
-    """Connexion PostgreSQL persistante — jamais fermée pour garder le port-forward kubectl ouvert."""
+def _ensure_pg_conn() -> psycopg2.extensions.connection:
+    """Crée ou valide la connexion persistante (thread-safe)."""
     global _pg_conn
-    try:
-        if _pg_conn is None or _pg_conn.closed:
+    with _pg_lock:
+        try:
+            if _pg_conn is None or _pg_conn.closed:
+                _pg_conn = psycopg2.connect(
+                    **PG_CONFIG,
+                    cursor_factory=psycopg2.extras.RealDictCursor,
+                )
+            else:
+                with _pg_conn.cursor() as cur:
+                    cur.execute("SELECT 1")
+        except Exception:
             _pg_conn = psycopg2.connect(
                 **PG_CONFIG,
                 cursor_factory=psycopg2.extras.RealDictCursor,
             )
-        else:
-            _pg_conn.cursor().execute("SELECT 1")
-    except Exception:
-        _pg_conn = psycopg2.connect(
-            **PG_CONFIG,
-            cursor_factory=psycopg2.extras.RealDictCursor,
-        )
-    yield _pg_conn
+    return _pg_conn
+
+
+def get_pg():
+    """Connexion PostgreSQL persistante — jamais fermée pour garder le port-forward kubectl ouvert."""
+    yield _ensure_pg_conn()
 
 
 def get_duck():
