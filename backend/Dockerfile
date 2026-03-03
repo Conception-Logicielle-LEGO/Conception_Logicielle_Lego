@@ -2,7 +2,7 @@ FROM astral/uv:python3.13-trixie
 
 WORKDIR /backend
 
-COPY pyproject.toml .
+COPY ./backend/pyproject.toml .
 RUN uv sync 
 
 COPY . .
