@@ -14,66 +14,68 @@ from app.database.dao.whishlist_dao import WishlistDAO
 
 
 # ---------------------------------------------------------------------------
-# PostgreSQL — connexion unique partagée sur toute la session
+# PostgreSQL — schéma créé une fois, connexion renouvelée par module
 # ---------------------------------------------------------------------------
 
+_schema_path = (
+    Path(__file__).parent.parent
+    / "app"
+    / "database"
+    / "postgres"
+    / "schema_user.sql"
+)
 
-@pytest.fixture(scope="session")
-def pg_conn():
-    """
-    Ouvre UNE SEULE connexion PostgreSQL pour toute la session de tests.
 
-    Au démarrage :
-      - Recrée le schéma 'test' depuis zéro (DROP + CREATE) pour garantir
-        la cohérence avec schema_user.sql
-
-    En cours de session :
-      - pg_rollback annule les données après chaque test
-    """
-    schema_path = (
-        Path(__file__).parent.parent
-        / "app"
-        / "database"
-        / "postgres"
-        / "schema_user.sql"
-    )
-
-    conn = psycopg2.connect(
+def _new_pg_conn():
+    return psycopg2.connect(
         **PG_CONFIG,
         options=f"-c search_path={SCHEMA_TEST}",
         cursor_factory=psycopg2.extras.RealDictCursor,
     )
 
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_schema():
+    """Recrée le schéma de test UNE SEULE FOIS au démarrage de la session."""
+    conn = _new_pg_conn()
     try:
         with conn.cursor() as cur:
-            # Recréer le schéma depuis zéro pour garantir la cohérence avec schema_user.sql
             cur.execute(f"DROP SCHEMA IF EXISTS {SCHEMA_TEST} CASCADE")
             cur.execute(f"CREATE SCHEMA {SCHEMA_TEST}")
             cur.execute(f"SET search_path TO {SCHEMA_TEST}")
-            cur.execute(schema_path.read_text())
+            cur.execute(_schema_path.read_text())
         conn.commit()
     except Exception:
         conn.rollback()
         conn.close()
         raise
+    conn.close()
 
+
+@pytest.fixture(scope="module")
+def pg_conn():
+    """
+    Connexion PostgreSQL renouvelée par module de test.
+    Évite les erreurs 'server closed the connection' sur une longue session.
+    """
+    conn = _new_pg_conn()
     yield conn
-
     conn.close()
 
 
 @pytest.fixture(autouse=True)
-def pg_rollback(pg_conn):
+def pg_rollback(request):
     """
-    Rollback AVANT et APRÈS chaque test.
-
-    - Avant : remet la connexion dans un état propre si le test précédent
-      a laissé la transaction en état 'aborted' (ex: UniqueViolation).
-    - Après : annule les données écrites pendant le test.
+    Rollback AVANT et APRÈS chaque test qui utilise pg_conn.
+    Si pg_conn n'est pas demandé (tests service, BO, controller...), ne fait rien.
     """
-    pg_conn.rollback()  # <-- nettoyage AVANT le test
+    if "pg_conn" not in request.fixturenames:
+        yield
+        return
+    conn = request.getfixturevalue("pg_conn")
+    conn.rollback()  # <-- nettoyage AVANT le test
     yield
-    pg_conn.rollback()  # <-- nettoyage APRÈS le test
+    conn.rollback()  # <-- nettoyage APRÈS le test
 
 
 @pytest.fixture()
