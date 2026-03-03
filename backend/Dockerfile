@@ -1,8 +1,10 @@
 FROM astral/uv:python3.13-trixie
 
-COPY ./backend/pyproject.toml /backend
+WORKDIR /backend
+
+COPY pyproject.toml .
 RUN uv sync 
 
-COPY . /backend
+COPY . .
 
-CMD ["uv", "run", "./backend/main.py"] 
+CMD ["uv", "run", "main.py"] 
