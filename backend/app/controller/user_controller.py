@@ -2,7 +2,12 @@ from fastapi import APIRouter, HTTPException
 
 from app.api.dependencies import PgDep
 from app.database.dao.user_dao import UserDAO
-from app.dto import ChangePasswordBody, ChangeUsernameBody, LoginBody, RegisterBody
+from app.dto.user_dto import (
+    ChangePasswordBody,
+    ChangeUsernameBody,
+    LoginBody,
+    RegisterBody,
+)
 from app.service.password_service import PasswordService
 from app.service.user_service import UserService
 
