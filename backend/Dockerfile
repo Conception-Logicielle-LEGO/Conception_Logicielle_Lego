@@ -7,4 +7,4 @@ RUN uv sync
 
 COPY . /backend
 
-CMD["uv", "run", "./backend/main.py"] 
+CMD ["uv", "run", "./backend/main.py"] 
