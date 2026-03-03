@@ -22,7 +22,7 @@ jobs:
         # voir : https://github.com/marketplace/actions/build-and-push-docker-images#customizing
         with:
           context: "{{defaultContext}}/backend" # Répertoire de contexte (racine du repo par défaut)
-          file: ./backend/Dockerfile  # Chemin vers le Dockerfile
+          file: Dockerfile  # Chemin vers le Dockerfile
           push: true
           tags: marieckebv/backend:latest
       - 
@@ -30,6 +30,6 @@ jobs:
         uses: docker/build-push-action@v3.1.1
         with:
           context: "{{defaultContext}}/frontend"
-          file: ./frontend/Dockerfile
+          file: Dockerfile
           push: true
           tags: marieckebv/image-frontend:latest
