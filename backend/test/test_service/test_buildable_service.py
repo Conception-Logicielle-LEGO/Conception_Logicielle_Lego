@@ -15,14 +15,16 @@ def make_service():
 # Test get_buildable_sets
 # -------------------------
 
+
 def test_get_buildable_sets_returns_three_keys():
     pg_conn, duck = make_service()
 
-    with patch("app.service.buildable_service.UserPartsDAO") as MockUserPartsDAO, \
-         patch("app.service.buildable_service.CollectionDAO") as MockCollectionDAO:
-
-        MockUserPartsDAO.return_value.get_owned_parts.return_value = []
-        MockCollectionDAO.return_value.get_user_collection.return_value = []
+    with (
+        patch("app.service.buildable_service.UserPartsDAO") as mock_user_parts_dao,
+        patch("app.service.buildable_service.CollectionDAO") as mock_collection_dao,
+    ):
+        mock_user_parts_dao.return_value.get_owned_parts.return_value = []
+        mock_collection_dao.return_value.get_user_collection.return_value = []
 
         service = BuildableService(pg_conn=pg_conn, duckdb_conn=duck)
         result = service.get_buildable_sets(user_id=1)
@@ -35,11 +37,12 @@ def test_get_buildable_sets_returns_three_keys():
 def test_get_buildable_sets_empty_collection():
     pg_conn, duck = make_service()
 
-    with patch("app.service.buildable_service.UserPartsDAO") as MockUserPartsDAO, \
-         patch("app.service.buildable_service.CollectionDAO") as MockCollectionDAO:
-
-        MockUserPartsDAO.return_value.get_owned_parts.return_value = []
-        MockCollectionDAO.return_value.get_user_collection.return_value = []
+    with (
+        patch("app.service.buildable_service.UserPartsDAO") as mock_user_parts_dao,
+        patch("app.service.buildable_service.CollectionDAO") as mock_collection_dao,
+    ):
+        mock_user_parts_dao.return_value.get_owned_parts.return_value = []
+        mock_collection_dao.return_value.get_user_collection.return_value = []
 
         service = BuildableService(pg_conn=pg_conn, duckdb_conn=duck)
         result = service.get_buildable_sets(user_id=1)
@@ -66,19 +69,20 @@ def test_load_user_stock_with_unbuilt_sets():
 
     duck.execute.side_effect = [
         unbuilt_result,  # requête pièces des sets non construits
-        MagicMock(),     # CREATE TEMP TABLE
-        MagicMock(),     # DELETE FROM _user_parts
-        empty_result,    # _query_buildable
-        empty_result,    # _query_partial
-        empty_result,    # _query_color_flexible
+        MagicMock(),  # CREATE TEMP TABLE
+        MagicMock(),  # DELETE FROM _user_parts
+        empty_result,  # _query_buildable
+        empty_result,  # _query_partial
+        empty_result,  # _query_color_flexible
     ]
     duck.description = [("part_num",), ("color_id",), ("qty",)]
 
-    with patch("app.service.buildable_service.UserPartsDAO") as MockUserPartsDAO, \
-         patch("app.service.buildable_service.CollectionDAO") as MockCollectionDAO:
-
-        MockUserPartsDAO.return_value.get_owned_parts.return_value = []
-        MockCollectionDAO.return_value.get_user_collection.return_value = [fake_set]
+    with (
+        patch("app.service.buildable_service.UserPartsDAO") as mock_user_parts_dao,
+        patch("app.service.buildable_service.CollectionDAO") as mock_collection_dao,
+    ):
+        mock_user_parts_dao.return_value.get_owned_parts.return_value = []
+        mock_collection_dao.return_value.get_user_collection.return_value = [fake_set]
 
         service = BuildableService(pg_conn=pg_conn, duckdb_conn=duck)
         service.get_buildable_sets(user_id=1)
@@ -93,13 +97,14 @@ def test_load_user_stock_with_owned_parts():
     duck.execute.return_value.fetchall.return_value = []
     duck.description = []
 
-    with patch("app.service.buildable_service.UserPartsDAO") as MockUserPartsDAO, \
-         patch("app.service.buildable_service.CollectionDAO") as MockCollectionDAO:
-
-        MockUserPartsDAO.return_value.get_owned_parts.return_value = [
+    with (
+        patch("app.service.buildable_service.UserPartsDAO") as mock_user_parts_dao,
+        patch("app.service.buildable_service.CollectionDAO") as mock_collection_dao,
+    ):
+        mock_user_parts_dao.return_value.get_owned_parts.return_value = [
             {"part_num": "3001", "color_id": 4, "quantity": 2}
         ]
-        MockCollectionDAO.return_value.get_user_collection.return_value = []
+        mock_collection_dao.return_value.get_user_collection.return_value = []
 
         service = BuildableService(pg_conn=pg_conn, duckdb_conn=duck)
         service.get_buildable_sets(user_id=1)
@@ -111,12 +116,14 @@ def test_load_user_stock_with_owned_parts():
 # Test _make_exclude
 # -------------------------
 
+
 def test_make_exclude_empty():
     pg_conn, duck = make_service()
 
-    with patch("app.service.buildable_service.UserPartsDAO"), \
-         patch("app.service.buildable_service.CollectionDAO"):
-
+    with (
+        patch("app.service.buildable_service.UserPartsDAO"),
+        patch("app.service.buildable_service.CollectionDAO"),
+    ):
         service = BuildableService(pg_conn=pg_conn, duckdb_conn=duck)
         sql, params = service._make_exclude([])
         assert sql == "NULL"
@@ -126,9 +133,10 @@ def test_make_exclude_empty():
 def test_make_exclude_with_values():
     pg_conn, duck = make_service()
 
-    with patch("app.service.buildable_service.UserPartsDAO"), \
-         patch("app.service.buildable_service.CollectionDAO"):
-
+    with (
+        patch("app.service.buildable_service.UserPartsDAO"),
+        patch("app.service.buildable_service.CollectionDAO"),
+    ):
         service = BuildableService(pg_conn=pg_conn, duckdb_conn=duck)
         sql, params = service._make_exclude(["1234-1", "5678-1"])
         assert sql == "?, ?"

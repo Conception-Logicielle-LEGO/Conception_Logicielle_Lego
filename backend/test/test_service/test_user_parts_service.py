@@ -13,6 +13,7 @@ def make_service():
 # Test add_part
 # -------------------------
 
+
 def test_add_part():
     service, dao, conn = make_service()
     dao.add_part.return_value = True
@@ -25,6 +26,7 @@ def test_add_part():
 # -------------------------
 # Test remove_part
 # -------------------------
+
 
 def test_remove_part():
     service, dao, conn = make_service()
@@ -39,6 +41,7 @@ def test_remove_part():
 # Test update_quantity
 # -------------------------
 
+
 def test_update_quantity():
     service, dao, conn = make_service()
     dao.update_quantity.return_value = True
@@ -52,6 +55,7 @@ def test_update_quantity():
 # Test get_owned_parts
 # -------------------------
 
+
 def test_get_owned_parts():
     service, dao, _ = make_service()
     dao.get_owned_parts.return_value = [{"part_num": "3001", "quantity": 2}]
@@ -63,6 +67,7 @@ def test_get_owned_parts():
 # -------------------------
 # Test get_wished_parts
 # -------------------------
+
 
 def test_get_wished_parts():
     service, dao, _ = make_service()

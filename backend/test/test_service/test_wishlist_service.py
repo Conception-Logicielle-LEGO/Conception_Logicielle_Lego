@@ -13,6 +13,7 @@ def make_service():
 # Test sets
 # -------------------------
 
+
 def test_add_set():
     service, dao, conn = make_service()
     dao.add_set.return_value = True
@@ -42,6 +43,7 @@ def test_get_sets():
 # -------------------------
 # Test parts
 # -------------------------
+
 
 def test_add_part():
     service, dao, conn = make_service()

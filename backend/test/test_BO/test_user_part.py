@@ -10,7 +10,14 @@ def test_user_part_init():
 
 
 def test_user_part_str():
-    up = UserPart(id_user=1, part_num="3001", color_id=4, quantity=3, status="owned", is_used=False)
+    up = UserPart(
+        id_user=1,
+        part_num="3001",
+        color_id=4,
+        quantity=3,
+        status="owned",
+        is_used=False,
+    )
     assert "3001" in str(up)
     assert "owned" in str(up)
 
@@ -21,7 +28,13 @@ def test_user_part_repr():
 
 
 def test_user_part_from_dict():
-    data = {"id_user": 1, "part_num": "3001", "color_id": 4, "quantity": 2, "status": "owned"}
+    data = {
+        "id_user": 1,
+        "part_num": "3001",
+        "color_id": 4,
+        "quantity": 2,
+        "status": "owned",
+    }
     up = UserPart.from_dict(data)
     assert up.quantity == 2
     assert up.is_used is False
@@ -35,13 +48,25 @@ def test_user_part_to_dict():
 
 
 def test_is_owned():
-    assert UserPart(id_user=1, part_num="3001", color_id=4, status="owned").is_owned() is True
-    assert UserPart(id_user=1, part_num="3001", color_id=4, status="wished").is_owned() is False
+    assert (
+        UserPart(id_user=1, part_num="3001", color_id=4, status="owned").is_owned()
+        is True
+    )
+    assert (
+        UserPart(id_user=1, part_num="3001", color_id=4, status="wished").is_owned()
+        is False
+    )
 
 
 def test_is_wished():
-    assert UserPart(id_user=1, part_num="3001", color_id=4, status="wished").is_wished() is True
-    assert UserPart(id_user=1, part_num="3001", color_id=4, status="owned").is_wished() is False
+    assert (
+        UserPart(id_user=1, part_num="3001", color_id=4, status="wished").is_wished()
+        is True
+    )
+    assert (
+        UserPart(id_user=1, part_num="3001", color_id=4, status="owned").is_wished()
+        is False
+    )
 
 
 def test_mark_as_used():

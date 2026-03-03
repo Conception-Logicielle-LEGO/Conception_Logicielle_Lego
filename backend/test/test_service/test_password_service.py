@@ -1,13 +1,15 @@
-import pytest
 from unittest.mock import MagicMock, patch
 
-from app.service.password_service import PasswordService
+import pytest
+
 from app.business_object.user import User
+from app.service.password_service import PasswordService
 
 
 # -------------------------
 # Test create_salt
 # -------------------------
+
 
 def test_create_salt_returns_hex_string():
     service = PasswordService(user_dao=MagicMock())
@@ -20,12 +22,15 @@ def test_create_salt_returns_hex_string():
 # Test validate_username_password
 # -------------------------
 
+
 def test_validate_username_password_success():
     dao = MagicMock()
     fake_user = User(username="john", hashed_password="correcthash", salt="somesalt")
     dao.get_user.return_value = fake_user
 
-    with patch("app.service.password_service.hash_password", return_value="correcthash"):
+    with patch(
+        "app.service.password_service.hash_password", return_value="correcthash"
+    ):
         service = PasswordService(user_dao=dao)
         result = service.validate_username_password("john", "plainpass")
         assert result == fake_user
