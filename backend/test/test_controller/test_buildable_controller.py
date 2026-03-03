@@ -3,7 +3,10 @@ from unittest.mock import MagicMock, patch
 
 def test_get_buildable_sets(client):
     mock_set = MagicMock()
-    mock_set.to_dict.return_value = {"set_num": "1234-1", "completion_percentage": 100.0}
+    mock_set.to_dict.return_value = {
+        "set_num": "1234-1",
+        "completion_percentage": 100.0,
+    }
 
     with patch("app.controller.buildable_controller.BuildableService") as mock_svc:
         mock_svc.return_value.get_buildable_sets.return_value = {

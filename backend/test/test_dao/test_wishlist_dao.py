@@ -153,6 +153,8 @@ class TestUpdatePartQuantity:
         assert part["quantity"] == 7
 
     def test_update_nonexistent_part_returns_false(self, dao_wishlist, existing_user):
-        result = dao_wishlist.update_part_quantity(existing_user, "part_inexistant", 999, 5)
+        result = dao_wishlist.update_part_quantity(
+            existing_user, "part_inexistant", 999, 5
+        )
 
         assert result is False

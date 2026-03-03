@@ -79,5 +79,6 @@ class TestGetDuck:
 
         assert conn is not None
         import contextlib
+
         with contextlib.suppress(StopIteration):
             next(gen)

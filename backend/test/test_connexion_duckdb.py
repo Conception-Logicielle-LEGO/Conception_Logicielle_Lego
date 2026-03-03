@@ -26,16 +26,26 @@ def temp_db(tmp_path):
 class TestDuckdbConnection:
     def test_raises_file_not_found_when_db_missing(self, tmp_path):
         missing = tmp_path / "missing.duckdb"
-        with patch("app.database.connexion_duckdb.DB_PATH", missing), pytest.raises(FileNotFoundError), duckdb_connection():
+        with (
+            patch("app.database.connexion_duckdb.DB_PATH", missing),
+            pytest.raises(FileNotFoundError),
+            duckdb_connection(),
+        ):
             pass
 
     def test_yields_connection_when_db_exists(self, temp_db):
-        with patch("app.database.connexion_duckdb.DB_PATH", temp_db), duckdb_connection() as conn:
+        with (
+            patch("app.database.connexion_duckdb.DB_PATH", temp_db),
+            duckdb_connection() as conn,
+        ):
             result = conn.execute("SELECT COUNT(*) FROM items").fetchone()
             assert result[0] == 2
 
     def test_connection_yields_working_connection(self, temp_db):
-        with patch("app.database.connexion_duckdb.DB_PATH", temp_db), duckdb_connection() as conn:
+        with (
+            patch("app.database.connexion_duckdb.DB_PATH", temp_db),
+            duckdb_connection() as conn,
+        ):
             result = conn.execute("SELECT 1").fetchone()
             assert result[0] == 1
 

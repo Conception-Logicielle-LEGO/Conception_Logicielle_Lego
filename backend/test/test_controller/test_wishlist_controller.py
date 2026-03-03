@@ -39,7 +39,10 @@ def test_get_wishlist_sets_with_items(client, mock_duck):
 
 def test_add_wishlist_set_success(client):
     with patch("app.controller.wishlist_controller.WishlistService") as mock_svc:
-        mock_svc.return_value.add_set.return_value = {"set_num": "1234-1", "priority": 0}
+        mock_svc.return_value.add_set.return_value = {
+            "set_num": "1234-1",
+            "priority": 0,
+        }
 
         resp = client.post("/users/1/wishlist/sets", json={"set_num": "1234-1"})
 
@@ -116,7 +119,10 @@ def test_get_wishlist_parts_with_items(client, mock_duck):
 
 def test_add_wishlist_part(client):
     with patch("app.controller.wishlist_controller.WishlistService") as mock_svc:
-        mock_svc.return_value.add_part.return_value = {"part_num": "3001", "quantity": 1}
+        mock_svc.return_value.add_part.return_value = {
+            "part_num": "3001",
+            "quantity": 1,
+        }
 
         resp = client.post(
             "/users/1/wishlist/parts",

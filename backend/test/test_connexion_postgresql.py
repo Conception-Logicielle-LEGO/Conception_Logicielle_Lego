@@ -23,6 +23,7 @@ class TestPostgresConnection:
 
     def test_context_manager_rollbacks_on_exception(self):
         import pytest
+
         with pytest.raises(ValueError), postgres_connection(test=True):
             raise ValueError("forced error")
 
@@ -33,9 +34,7 @@ class TestExecutePostgresQuery:
         assert result[0]["val"] == 1
 
     def test_select_with_params(self):
-        result = execute_postgres_query(
-            "SELECT %s::int AS val", params=[42], test=True
-        )
+        result = execute_postgres_query("SELECT %s::int AS val", params=[42], test=True)
         assert result[0]["val"] == 42
 
     def test_no_fetch_returns_none(self):

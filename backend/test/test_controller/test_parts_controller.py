@@ -39,7 +39,10 @@ def test_get_owned_parts_with_items(client, mock_duck):
 
 def test_add_owned_part(client):
     with patch("app.controller.parts_controller.UserPartsService") as mock_svc:
-        mock_svc.return_value.add_part.return_value = {"part_num": "3001", "quantity": 2}
+        mock_svc.return_value.add_part.return_value = {
+            "part_num": "3001",
+            "quantity": 2,
+        }
 
         resp = client.post(
             "/users/1/parts", json={"part_num": "3001", "color_id": 4, "quantity": 2}

@@ -245,7 +245,9 @@ class TestMarkSetAsUnbuilt:
 
         assert result is True
 
-    def test_mark_set_as_unbuilt_updates_db(self, dao_collection, existing_user, pg_conn):
+    def test_mark_set_as_unbuilt_updates_db(
+        self, dao_collection, existing_user, pg_conn
+    ):
         dao_collection.add_set_to_collection(existing_user, "42115-1", is_built=True)
         dao_collection.mark_set_as_unbuilt(existing_user, "42115-1")
 
@@ -258,7 +260,9 @@ class TestMarkSetAsUnbuilt:
 
         assert row["is_built"] is False
 
-    def test_mark_nonexistent_set_as_unbuilt_returns_false(self, dao_collection, existing_user):
+    def test_mark_nonexistent_set_as_unbuilt_returns_false(
+        self, dao_collection, existing_user
+    ):
         result = dao_collection.mark_set_as_unbuilt(existing_user, "set_inexistant")
 
         assert result is False

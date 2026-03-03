@@ -64,7 +64,9 @@ def test_login_success(client):
     ):
         mock_ps_cls.return_value.validate_username_password.return_value = _fake_user()
 
-        resp = client.post("/users/login", json={"username": "john", "password": "pass"})
+        resp = client.post(
+            "/users/login", json={"username": "john", "password": "pass"}
+        )
 
     assert resp.status_code == 200
     assert resp.json()["id_user"] == 1
@@ -79,7 +81,9 @@ def test_login_wrong_password(client):
             "Mot de passe incorrect"
         )
 
-        resp = client.post("/users/login", json={"username": "john", "password": "wrong"})
+        resp = client.post(
+            "/users/login", json={"username": "john", "password": "wrong"}
+        )
 
     assert resp.status_code == 401
 

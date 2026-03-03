@@ -12,7 +12,14 @@ from app.database.dao.search_dao import SearchDAO, _has_embeddings, _has_vss
 # Helpers
 # ---------------------------------------------------------------------------
 
-SET_COLS = [("set_num",), ("name",), ("year",), ("theme_id",), ("num_parts",), ("img_url",)]
+SET_COLS = [
+    ("set_num",),
+    ("name",),
+    ("year",),
+    ("theme_id",),
+    ("num_parts",),
+    ("img_url",),
+]
 PART_COLS = [("part_num",), ("name",), ("part_cat_id",), ("img_url",)]
 
 
@@ -66,7 +73,9 @@ class TestSearchSetsLike:
         self.patcher.stop()
 
     def test_search_sets_returns_list(self):
-        mock_conn = make_mock_conn(SET_COLS, [("1234-1", "Castle", 2023, 1, 100, "img")])
+        mock_conn = make_mock_conn(
+            SET_COLS, [("1234-1", "Castle", 2023, 1, 100, "img")]
+        )
         dao = SearchDAO(mock_conn)
         result = dao.search_sets("castle")
         assert len(result) == 1
@@ -81,11 +90,15 @@ class TestSearchSetsLike:
     def test_search_sets_with_all_filters(self):
         mock_conn = make_mock_conn(SET_COLS, [])
         dao = SearchDAO(mock_conn)
-        result = dao.search_sets("castle", theme_id=1, year_from=2020, year_to=2023, limit=5)
+        result = dao.search_sets(
+            "castle", theme_id=1, year_from=2020, year_to=2023, limit=5
+        )
         assert isinstance(result, list)
 
     def test_search_sets_with_no_query(self):
-        mock_conn = make_mock_conn(SET_COLS, [("1234-1", "Castle", 2023, 1, 100, "img")])
+        mock_conn = make_mock_conn(
+            SET_COLS, [("1234-1", "Castle", 2023, 1, 100, "img")]
+        )
         dao = SearchDAO(mock_conn)
         result = dao.search_sets("", theme_id=1)
         assert isinstance(result, list)
@@ -128,7 +141,9 @@ class TestGetRecentSetsAndStats:
         self.patcher.stop()
 
     def test_get_recent_sets(self):
-        mock_conn = make_mock_conn(SET_COLS, [("1234-1", "Castle", 2023, 1, 100, "img")])
+        mock_conn = make_mock_conn(
+            SET_COLS, [("1234-1", "Castle", 2023, 1, 100, "img")]
+        )
         dao = SearchDAO(mock_conn)
         result = dao.get_recent_sets()
         assert len(result) == 1

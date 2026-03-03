@@ -20,10 +20,14 @@ def test_search_sets_with_filters(client):
     with patch("app.controller.search_controller.SearchService") as mock_svc:
         mock_svc.return_value.search_sets.return_value = []
 
-        resp = client.get("/sets/search?q=castle&theme_id=1&year_from=2020&year_to=2023&limit=5")
+        resp = client.get(
+            "/sets/search?q=castle&theme_id=1&year_from=2020&year_to=2023&limit=5"
+        )
 
     assert resp.status_code == 200
-    mock_svc.return_value.search_sets.assert_called_once_with("castle", 1, 2020, 2023, 5)
+    mock_svc.return_value.search_sets.assert_called_once_with(
+        "castle", 1, 2020, 2023, 5
+    )
 
 
 # -------------------------

@@ -18,11 +18,7 @@ from app.database.dao.whishlist_dao import WishlistDAO
 # ---------------------------------------------------------------------------
 
 _schema_path = (
-    Path(__file__).parent.parent
-    / "app"
-    / "database"
-    / "postgres"
-    / "schema_user.sql"
+    Path(__file__).parent.parent / "app" / "database" / "postgres" / "schema_user.sql"
 )
 
 

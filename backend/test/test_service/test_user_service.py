@@ -98,7 +98,9 @@ def test_change_password_wrong_old_password():
 
     with patch("app.service.user_service.PasswordService") as mock_password_service:
         instance = mock_password_service.return_value
-        instance.validate_username_password.side_effect = Exception("Mot de passe incorrect")
+        instance.validate_username_password.side_effect = Exception(
+            "Mot de passe incorrect"
+        )
 
         service = UserService(user_dao=mock_dao)
 
