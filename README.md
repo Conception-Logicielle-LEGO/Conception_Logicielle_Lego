@@ -1,180 +1,169 @@
-# Conception_Logicielle_Lego
-Faire une application ermettant de trouver les sets qu'il est possible de réaliser à partir de l'ensemble des pièces Lego possédées.
+# LEGO Set Finder
 
-## Lancement de l’application
+Application web permettant de trouver les sets LEGO assemblables à partir des pièces que vous possédez.
 
-### Prérequis
-
-Avant de lancer l’application, assurez-vous de disposer des éléments suivants :
-
-* **Python 3.11 ou supérieur**
-* **uv** installé et accessible depuis le terminal
-
-### optionnel : visualisation des diagrammes
-
-installer l'extension Mermaid Preview  v2.1.2 
+**Stack :** FastAPI (backend) · React/Vite (frontend) · DuckDB (catalogue LEGO Rebrickable) · PostgreSQL (données utilisateur)
 
 ---
 
-## Variables d'environnement :
-Copier la template dans un fichier .env
+## Quickstart
+
+### Prérequis
+
+- Python 3.13+ et [uv](https://docs.astral.sh/uv/)
+- Node.js 18+ et npm
+- Une instance PostgreSQL accessible (voir [Configuration PostgreSQL](#configuration-postgresql))
+- Un compte [Rebrickable](https://rebrickable.com) pour obtenir une clé API (nécessaire avant l'initialisation de la base LEGO)
+
+### Installation
 
 ```bash
+# 1. Copier le fichier de configuration
 cp .env.template .env
 ```
 
-### Création de l’environnement et installation des dépendances
-
-Depuis la racine du projet, exécutez les commandes suivantes;
+**Avant de continuer**, éditer `.env` et renseigner :
+- `POSTGRES_USER` et `POSTGRES_PASSWORD` — identifiants de votre instance PostgreSQL
+- `REBRICKABLE_API_KEY` — clé obtenue sur https://rebrickable.com → *Mon compte → Settings → API → Generate key*
 
 ```bash
+# 2. Installer les dépendances backend
 cd backend
-uv venv
 uv sync
-```
-lancer la commande 
-source .venv/bin/activate
+cd ..
 
+# 3. Installer les dépendances frontend
+cd frontend
+npm install
+cd ..
 
-## Requirements :
-Géré par le Dockerfile et pyproject.toml
-Pour ajouter un package aux requirements, écrire "uv add <nom package>" dans le bash
-
-
-## setup pythonpath
-### run (dans le terminal) :
-
-On set le pythonpath dans le dossier backend. Exécutez depuis backend :
-```bash
-export PYTHONPATH=$(pwd)
-```
-
-### vérifier avec :
-```bash
-echo $PYTHONPATH
-```
-
-# Mise en place BDD
-## BDD en local : données LEGO rebrickable, format .duckdb :
-
-### pour les urls image
-Aller sur https://rebrickable.com/ et se créer un compte.
-Aller dans Account, "Settings", "API", et générer une clé d'API. La copier et la renseigner dans le .env :
-
-REBRICKABLE_API_KEY=<votre_clé_d'API>
-
-### Lancement de la BDD
-ATTENTION : compter 10 minutes pour l'exécution de ce script :
-Exécuter (toujours depuis backend) : 
-
-```python
+# 4. Initialiser la base DuckDB — télécharge les données Rebrickable (~10 min)
+#    Requiert REBRICKABLE_API_KEY dans .env
+cd backend
 python app/database/duckdb/init_db_lego.py
-```
+cd ..
 
-## BDD relative aux utilisateurs (postgreSQL) :
-
-1) Lancer un service PostgreSQL sur onyxia avec ces paramètres :
-
-https://datalab.sspcloud.fr/launcher/databases/postgresql-cnpg?name=postgresql-cnpg&version=0.4.2&extension.pgvector=true&storage.size=«20Gi»&resources.limits.memory=«80Gi»&security.networkPolicy.enabled=false&autoLaunch=true 
-
-2) Renseigner le nom d'utilisateur et le mot de passe du service dans le .env
-
-3) Sur Onyxia : aller dans "Mon compte", puis "Connexion à Kubernetes". Copier le script et l'exécuter dans votre terminal.
-
-4) Ouvrir un terminal et exécuter :
-
-```bash
-kubectl get pods
-```
-Cette commande retourne les services onyxia lancés. Copier le nom du service postgresql et exécutez :
-
-```bash
-export POD=<nom_du_service>
-echo $POD
-
-kubectl port-forward $POD 5432:5432
-```
-5) Ouvrir un autre terminal et exécutez:
-
-```python
+# 5. Initialiser la base PostgreSQL
 cd backend
 python app/database/postgres/init_db_user.py
+cd ..
 ```
 
-### Cas où on veut accéder au port (autre utilisateur)
+### Lancer l'application
 
-Le fichier `kubernetes/pg-proxy.yaml` contient le nom du service PostgreSQL propre à chaque utilisateur. Avant de l'appliquer, vérifier que le service correspond bien à votre namespace :
-
-```bash
-kubectl get svc
-```
-
-Mettre à jour `kubernetes/pg-proxy.yaml` si nécessaire (remplacer le nom du service et le namespace), puis exécuter à la racine du projet :
+Ouvrir deux terminaux depuis la racine du projet :
 
 ```bash
-kubectl apply -f kubernetes/pg-proxy.yaml
-kubectl port-forward pod/pg-proxy 5432:5432
-```
-
-
-
-# Mise en place frontend
-
-npm install -g create-vite
-npm create vite@latest frontend
-
-
-Ignore files -> React -> Javascript -> no -> yes
-
-
-## Lancer l'application
-
-**Ouvrir 2 terminaux :**
-
-#### Terminal 1 - Backend (API)
-```bash
-cd ~/Conception_Logicielle_Lego
+# Terminal 1 — Backend
 uvicorn backend.app.api.fast_api:app --reload --port 8000
 ```
-✅ Backend disponible sur : http://localhost:8000
 
-#### Terminal 2 - Frontend (Interface)
 ```bash
-cd ~/Conception_Logicielle_Lego/frontend
+# Terminal 2 — Frontend
+cd frontend
 npm run dev
 ```
-✅ Frontend disponible sur : http://localhost:5173
 
-## Vérification
+- Backend : http://localhost:8000
+- Frontend : http://localhost:5173
 
-1. Ouvrir http://localhost:5173 dans le navigateur
-2. Vous devriez voir :
-   - Le header "🧱 LEGO Database Explorer"
-   - Les statistiques (Total Sets, Pièces, Thèmes)
-   - La liste des sets LEGO
+---
+
+## Scénario d'utilisation
+
+1. **Accueil** — Ouvrir http://localhost:5173 pour consulter les statistiques du catalogue (nombre de sets, pièces, thèmes) et les derniers sets ajoutés.
+
+2. **Recherche** — Aller sur `/search` pour chercher un set ou une pièce par nom. La recherche se déclenche automatiquement après quelques caractères.
+
+3. **Gestion de sa collection** — Dans `/account` :
+   - Ajouter des sets qu'on possède (déboîtés ou construits)
+   - Marquer un set comme "construit" pour exclure ses pièces du stock disponible
+   - Ajouter des pièces individuelles à sa collection
+
+4. **Wishlist** — Ajouter des sets ou des pièces à une liste de souhaits pour un achat futur.
+
+5. **Sets assemblables** — Consulter `/buildable` pour voir quels sets du catalogue peuvent être assemblés avec les pièces disponibles. Chaque set affiche un pourcentage de pièces disponibles.
+
+6. **Favoris** — Depuis n'importe quelle fiche set, l'ajouter aux favoris pour la retrouver rapidement dans `/account`.
 
 ---
 
 ## Lancer les tests
 
-Les tests requièrent une connexion PostgreSQL active (via port-forward).
-
-### 1. Ouvrir le tunnel PostgreSQL
-
 ```bash
-kubectl apply -f kubernetes/pg-proxy.yaml
-kubectl port-forward pod/pg-proxy 5432:5432 &
+cd backend
+pytest test/ -v
 ```
 
-### 2. Lancer les tests
+Tests ciblés :
+
+```bash
+# Tests unitaires (business objects) — aucune base de données requise
+pytest test/test_BO/ -v
+
+# Tests de service
+pytest test/test_service/ -v
+
+# Tests DAO (requiert PostgreSQL)
+pytest test/test_dao/ -v
+```
+
+> Les tests PostgreSQL nécessitent une instance configurée via les variables d'environnement.
+> Les tests DuckDB sont ignorés automatiquement si `lego_test.duckdb` est absent.
+
+---
+
+## Linting et formatage
 
 ```bash
 cd backend
-uv run pytest -q
+ruff check .          # vérification
+ruff check --fix .    # correction automatique
+ruff format .         # formatage
 ```
 
-### Avec coverage
+---
+
+## Configuration PostgreSQL
+PostgreSQL sur Onyxia (SSP Cloud) :
+
+1. Lancer un service PostgreSQL sur [Onyxia](https://datalab.sspcloud.fr/launcher/databases/postgresql-cnpg)
+2. Renseigner les identifiants dans `.env`
+3. Configurer le port-forward Kubernetes :
+
+Aller dans "mon compte", "connexion à Kubernetes", puis copier le script de configuration et lancez le depuis votre terminal.
+Puis exécutez :
 
 ```bash
-uv run pytest --cov=app --cov-report=term-missing -q
+kubectl get pods
+export POD=<nom_du_pod_postgresql>
+kubectl port-forward $POD 5432:5432
 ```
+
+---
+
+## Architecture
+
+```
+Conception_Logicielle_Lego/
+├── backend/
+│   └── app/
+│       ├── api/              # Routes FastAPI
+│       ├── business_object/  # Objets métier (User, Set, Part…)
+│       ├── service/          # Logique métier
+│       └── database/
+│           ├── dao/          # Accès aux données
+│           ├── duckdb/       # Catalogue LEGO (lecture seule)
+│           └── postgres/     # Données utilisateur (lecture/écriture)
+├── frontend/
+│   └── src/
+│       ├── pages/            # Pages de l'application
+│       ├── components/       # Composants réutilisables
+│       └── api/              # Client HTTP (axios)
+├── docs/                     # Documentation technique (modèle de données)
+└── .github/workflows/        # Pipelines CI (tests, lint)
+```
+
+Le catalogue LEGO est stocké dans DuckDB (lecture seule). Les données utilisateur (collection, wishlist, favoris) sont dans PostgreSQL. Les deux bases sont interrogées indépendamment, sans clés étrangères croisées.
+
+Pour le modèle de données complet, voir [`docs/Physical_data_model.md`](docs/Physical_data_model.md).
