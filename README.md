@@ -111,6 +111,13 @@ pytest test/test_dao/ -v
 > Les tests PostgreSQL nécessitent une instance configurée via les variables d'environnement.
 > Les tests DuckDB sont ignorés automatiquement si `lego_test.duckdb` est absent.
 
+Avec rapport de couverture :
+
+```bash
+cd backend
+uv run pytest --cov=app --cov-report=term-missing -q
+```
+
 ---
 
 ## Linting et formatage
@@ -136,7 +143,8 @@ Option B — PostgreSQL sur Onyxia (SSP Cloud) :
 
 1. Lancer un service PostgreSQL sur [Onyxia](https://datalab.sspcloud.fr/launcher/databases/postgresql-cnpg)
 2. Renseigner les identifiants dans `.env`
-3. Configurer le port-forward Kubernetes :
+3. Aller dans *Mon compte → Connexion à Kubernetes*, copier le script et l'exécuter dans le terminal
+4. Configurer le port-forward :
 
 ```bash
 kubectl get pods

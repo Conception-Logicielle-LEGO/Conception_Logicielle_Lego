@@ -69,3 +69,20 @@ def test_get_parts():
     result = service.get_parts(user_id=1)
     dao.get_parts.assert_called_once_with(1)
     assert result == [{"part_num": "3001"}]
+
+
+def test_update_part_quantity_success():
+    service, dao, conn = make_service()
+    dao.update_part_quantity.return_value = True
+    result = service.update_part_quantity(1, "3001", 4, 3)
+    dao.update_part_quantity.assert_called_once_with(1, "3001", 4, 3)
+    conn.commit.assert_called_once()
+    assert result is True
+
+
+def test_update_part_quantity_not_found():
+    service, dao, conn = make_service()
+    dao.update_part_quantity.return_value = False
+    result = service.update_part_quantity(1, "9999", 4, 3)
+    conn.commit.assert_called_once()
+    assert result is False
