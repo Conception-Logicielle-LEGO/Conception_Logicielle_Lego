@@ -19,7 +19,6 @@ export default function BuildablePage() {
   const navigate = useNavigate();
   const [buildable, setBuildable] = useState([]);
   const [partial, setPartial] = useState([]);
-  const [colorFlex, setColorFlex] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -38,7 +37,6 @@ export default function BuildablePage() {
       .then((r) => {
         setBuildable((r.data.buildable ?? []).map(flattenBuildable));
         setPartial((r.data.partial ?? []).map(flattenBuildable));
-        setColorFlex((r.data.color_flexible ?? []).map(flattenBuildable));
       })
       .catch(() => setError('Impossible de charger les sets constructibles.'))
       .finally(() => setLoading(false));
@@ -47,7 +45,7 @@ export default function BuildablePage() {
   if (isLoading) return null;
   if (!user) return null;
 
-  const total = buildable.length + partial.length + colorFlex.length;
+  const total = buildable.length + partial.length;
 
   return (
     <div className="space-y-8">
@@ -99,21 +97,6 @@ export default function BuildablePage() {
             </section>
           )}
 
-          {colorFlex.length > 0 && (
-            <section>
-              <h2 className="mb-3 text-lg font-semibold text-blue-700">
-                🎨 Constructibles (couleur flexible) ({colorFlex.length})
-              </h2>
-              <p className="mb-3 text-sm text-gray-500">
-                Vous avez les bonnes pièces, mais pas nécessairement dans les couleurs exactes.
-              </p>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {colorFlex.map((set) => (
-                  <SetCard key={set.set_num} set={set} />
-                ))}
-              </div>
-            </section>
-          )}
         </>
       )}
     </div>

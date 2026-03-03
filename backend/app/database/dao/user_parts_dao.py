@@ -79,9 +79,14 @@ class UserPartsDAO:
             return [dict(row) for row in rows]
 
     def update_quantity(
-        self, user_id: int, part_num: str, color_id: int, quantity: int
+        self,
+        user_id: int,
+        part_num: str,
+        color_id: int,
+        quantity: int,
+        is_used: bool = False,
     ) -> bool:
-        """Met à jour la quantité d'une pièce.
+        """Met à jour la quantité d'une pièce (libre ou utilisée).
 
         Returns:
             True si mis à jour, False si la pièce n'existe pas.
@@ -89,8 +94,8 @@ class UserPartsDAO:
         query = """
             UPDATE user_parts
             SET quantity = %s
-            WHERE id_user = %s AND part_num = %s AND color_id = %s
+            WHERE id_user = %s AND part_num = %s AND color_id = %s AND is_used = %s
         """
         with self.connection.cursor() as cur:
-            cur.execute(query, (quantity, user_id, part_num, color_id))
+            cur.execute(query, (quantity, user_id, part_num, color_id, is_used))
             return cur.rowcount > 0
