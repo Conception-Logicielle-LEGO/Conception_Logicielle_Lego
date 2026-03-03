@@ -30,9 +30,13 @@ def _new_pg_conn():
     )
 
 
-@pytest.fixture(scope="session", autouse=True)
-def setup_test_schema():
-    """Recrée le schéma de test UNE SEULE FOIS au démarrage de la session."""
+@pytest.fixture(scope="session")
+def pg_conn():
+    """
+    Connexion PostgreSQL unique pour toute la session de tests.
+    Crée le schéma de test sur cette même connexion avant de la yielder,
+    afin de n'ouvrir qu'une seule connexion (compatible avec kubectl port-forward).
+    """
     conn = _new_pg_conn()
     try:
         with conn.cursor() as cur:
@@ -45,16 +49,6 @@ def setup_test_schema():
         conn.rollback()
         conn.close()
         raise
-    conn.close()
-
-
-@pytest.fixture(scope="module")
-def pg_conn():
-    """
-    Connexion PostgreSQL renouvelée par module de test.
-    Évite les erreurs 'server closed the connection' sur une longue session.
-    """
-    conn = _new_pg_conn()
     yield conn
     conn.close()
 
