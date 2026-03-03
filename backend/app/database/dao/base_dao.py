@@ -16,7 +16,7 @@ class BaseDAO(ABC):
         Retourne le nom de la table principale gérée par ce DAO.
         Doit être implémenté par chaque DAO enfant pour préciser les colonnes.
         """
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def get_allowed_columns(self) -> set[str]:
@@ -25,7 +25,7 @@ class BaseDAO(ABC):
         Liste blanche pour éviter les injections SQL.
         Doit être implémenté par chaque DAO enfant.
         """
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def from_row(self, row: dict):
@@ -36,7 +36,7 @@ class BaseDAO(ABC):
         Exemple pour UserDAO :
             return User.from_dict(row)
         """
-        pass
+        pass  # pragma: no cover
 
     def get_by(self, column: str, value) -> list:
         """

@@ -19,7 +19,7 @@ SCHEMA_TEST = "test"
 # Mot de passe obligatoire
 _pg_password = os.getenv("POSTGRES_PASSWORD")
 if not _pg_password:
-    raise OSError("La variable d'environnement POSTGRES_PASSWORD n'est pas définie.")
+    raise OSError("La variable d'environnement POSTGRES_PASSWORD n'est pas définie.")  # pragma: no cover
 
 # Configuration PostgreSQL (même serveur pour prod et test)
 PG_CONFIG = {
