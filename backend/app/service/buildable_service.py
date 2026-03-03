@@ -33,27 +33,6 @@ _STRICT_CTE = """
     )
 """
 
-_FLEX_CTE = """
-    WITH req_flex AS (
-        SELECT i.set_num, ip.part_num, SUM(ip.quantity) AS needed
-        FROM inventories i
-        JOIN inventory_parts ip ON i.id = ip.inventory_id
-        WHERE ip.is_spare = false
-        GROUP BY i.set_num, ip.part_num
-    ),
-    stock_flex AS (
-        SELECT part_num, SUM(qty) AS qty FROM _user_parts GROUP BY part_num
-    ),
-    coverage AS (
-        SELECT r.set_num,
-            COUNT(*) AS total,
-            SUM(CASE WHEN COALESCE(up.qty, 0) >= r.needed THEN 1 ELSE 0 END) AS covered
-        FROM req_flex r
-        LEFT JOIN stock_flex up ON r.part_num = up.part_num
-        GROUP BY r.set_num
-    )
-"""
-
 
 class BuildableService:
     """Détermine quels sets un utilisateur peut construire avec ses pièces.
@@ -63,10 +42,9 @@ class BuildableService:
     2. Pour chaque set non-construit de la collection, ajoute ses pièces
        au stock (car l'utilisateur les possède via le set).
     3. Charge le stock dans une table temporaire DuckDB.
-    4. Trois requêtes DuckDB :
-       - buildable      : 100 % des (part_num, color_id) couverts
-       - partial        : 80–99 % des (part_num, color_id) couverts
-       - color_flexible : 100 % en ignorant la couleur (part_num seul)
+    4. Deux requêtes DuckDB :
+       - buildable : 100 % des (part_num, color_id) couverts
+       - partial   : 80–99 % des (part_num, color_id) couverts
     """
 
     def __init__(self, pg_conn, duckdb_conn):
@@ -79,13 +57,12 @@ class BuildableService:
     # ------------------------------------------------------------------
 
     def get_buildable_sets(self, user_id: int, limit: int = 50) -> dict:
-        """Retourne trois listes de BuildableSet.
+        """Retourne deux listes de BuildableSet.
 
         Returns:
             {
-              "buildable":      list[BuildableSet],  # 100 %, couleur exacte
-              "partial":        list[BuildableSet],  # 80–99 %, couleur exacte
-              "color_flexible": list[BuildableSet],  # 100 %, couleur ignorée
+              "buildable": list[BuildableSet],  # 100 %, couleur exacte
+              "partial":   list[BuildableSet],  # 80–99 %, couleur exacte
             }
         """
         self._load_user_stock(user_id)
@@ -94,17 +71,11 @@ class BuildableService:
         collection_nums = [s.set_num for s in collection]
 
         buildable = self._query_buildable(collection_nums, limit)
-        buildable_nums = [b.set_num for b in buildable]
-
         partial = self._query_partial(collection_nums, limit)
-        color_flexible = self._query_color_flexible(
-            collection_nums + buildable_nums, limit
-        )
 
         return {
             "buildable": buildable,
             "partial": partial,
-            "color_flexible": color_flexible,
         }
 
     # ------------------------------------------------------------------
@@ -198,26 +169,6 @@ class BuildableService:
               AND c.total >= 5
               AND c.set_num NOT IN ({ph})
             ORDER BY completion_percentage DESC, s.num_parts DESC
-            LIMIT ?
-            """,
-            ex_params + [limit],
-        ).fetchall()
-        return self._rows_to_buildable_sets(rows)
-
-    def _query_color_flexible(
-        self, exclude_nums: list[str], limit: int
-    ) -> list[BuildableSet]:
-        ph, ex_params = self._make_exclude(exclude_nums)
-        rows = self.duck.execute(
-            f"""
-            {_FLEX_CTE}
-            SELECT {_SELECT_COLS}
-            FROM coverage c
-            JOIN sets s ON c.set_num = s.set_num
-            WHERE c.covered = c.total
-              AND c.total >= 5
-              AND c.set_num NOT IN ({ph})
-            ORDER BY s.num_parts DESC
             LIMIT ?
             """,
             ex_params + [limit],

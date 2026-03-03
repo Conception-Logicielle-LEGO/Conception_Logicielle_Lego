@@ -42,3 +42,10 @@ class WishlistService:
 
     def get_parts(self, user_id: int) -> list[dict]:
         return self.dao.get_parts(user_id)
+
+    def update_part_quantity(
+        self, user_id: int, part_num: str, color_id: int, quantity: int
+    ) -> bool:
+        result = self.dao.update_part_quantity(user_id, part_num, color_id, quantity)
+        self.conn.commit()
+        return result
