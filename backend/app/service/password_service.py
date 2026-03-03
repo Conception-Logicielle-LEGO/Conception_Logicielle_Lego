@@ -21,7 +21,7 @@ class PasswordService:
             raise Exception(f"user with username {username} not found")
 
         salt = user_with_username.salt
-        stored_hash = user_with_username.password
+        stored_hash = user_with_username.hashed_password
 
         computed_hash = hash_password(password, salt)
 
