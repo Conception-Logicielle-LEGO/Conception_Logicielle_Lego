@@ -1,7 +1,8 @@
 """Tests pour BaseDAO (méthodes génériques get_by, get_all, exists)."""
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from app.database.dao.base_dao import BaseDAO
 

@@ -1,6 +1,7 @@
-import pytest
-from fastapi.testclient import TestClient
 from unittest.mock import MagicMock
+
+from fastapi.testclient import TestClient
+import pytest
 
 from app.api.dependencies import get_duck, get_pg
 from app.api.fast_api import app

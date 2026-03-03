@@ -1,7 +1,8 @@
 """Tests pour SearchDAO (DuckDB, LIKE fallback et chemins VSS)."""
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 import app.database.dao.search_dao as search_module
 from app.database.dao.search_dao import SearchDAO, _has_embeddings, _has_vss
