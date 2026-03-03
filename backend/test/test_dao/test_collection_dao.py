@@ -230,3 +230,35 @@ class TestRemoveSetFromCollection:
 
         other_collection = dao_collection.get_user_collection(other_user_id)
         assert any(s.set_num == "42115-1" for s in other_collection)
+
+
+# ---------------------------------------------------------------------------
+# Tests — mark_set_as_unbuilt
+# ---------------------------------------------------------------------------
+
+
+class TestMarkSetAsUnbuilt:
+    def test_mark_set_as_unbuilt_returns_true(self, dao_collection, existing_user):
+        dao_collection.add_set_to_collection(existing_user, "42115-1", is_built=True)
+
+        result = dao_collection.mark_set_as_unbuilt(existing_user, "42115-1")
+
+        assert result is True
+
+    def test_mark_set_as_unbuilt_updates_db(self, dao_collection, existing_user, pg_conn):
+        dao_collection.add_set_to_collection(existing_user, "42115-1", is_built=True)
+        dao_collection.mark_set_as_unbuilt(existing_user, "42115-1")
+
+        with pg_conn.cursor() as cur:
+            cur.execute(
+                "SELECT is_built FROM user_owned_sets WHERE id_user = %s AND set_num = %s",
+                (existing_user, "42115-1"),
+            )
+            row = cur.fetchone()
+
+        assert row["is_built"] is False
+
+    def test_mark_nonexistent_set_as_unbuilt_returns_false(self, dao_collection, existing_user):
+        result = dao_collection.mark_set_as_unbuilt(existing_user, "set_inexistant")
+
+        assert result is False
