@@ -1,34 +1,30 @@
 """Tests pour les utilitaires de connexion PostgreSQL."""
 
 from app.database.connexion_postgresql import (
-    postgres_connection,
-    execute_postgres_query,
     execute_postgres_insert,
-    SCHEMA_TEST,
+    execute_postgres_query,
+    postgres_connection,
 )
 
 
 class TestPostgresConnection:
     def test_context_manager_yields_connection(self):
-        with postgres_connection(test=True) as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT 1 AS val")
-                row = cur.fetchone()
+        with postgres_connection(test=True) as conn, conn.cursor() as cur:
+            cur.execute("SELECT 1 AS val")
+            row = cur.fetchone()
         assert row[0] == 1
 
     def test_context_manager_commits_on_success(self):
-        with postgres_connection(test=True) as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "INSERT INTO users (username, hashed_password) VALUES (%s, %s)",
-                    ("conn_test_commit", "hash"),
-                )
+        with postgres_connection(test=True) as conn, conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO users (username, hashed_password) VALUES (%s, %s)",
+                ("conn_test_commit", "hash"),
+            )
 
     def test_context_manager_rollbacks_on_exception(self):
         import pytest
-        with pytest.raises(ValueError):
-            with postgres_connection(test=True) as conn:
-                raise ValueError("forced error")
+        with pytest.raises(ValueError), postgres_connection(test=True):
+            raise ValueError("forced error")
 
 
 class TestExecutePostgresQuery:

@@ -1,9 +1,10 @@
 """Tests pour les dépendances FastAPI (get_pg, get_duck)."""
 
-import duckdb
-import pytest
-from fastapi import HTTPException
 from unittest.mock import MagicMock, patch
+
+import duckdb
+from fastapi import HTTPException
+import pytest
 
 import app.api.dependencies as dep_module
 from app.api.dependencies import get_duck, get_pg
@@ -77,7 +78,6 @@ class TestGetDuck:
         conn = next(gen)
 
         assert conn is not None
-        try:
+        import contextlib
+        with contextlib.suppress(StopIteration):
             next(gen)
-        except StopIteration:
-            pass

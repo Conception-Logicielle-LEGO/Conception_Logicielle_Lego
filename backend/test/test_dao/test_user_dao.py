@@ -115,7 +115,7 @@ class TestUserDAO:
 
         assert result is None
 
-    def test_get_by_username_found(self, pg_conn, existing_user):
+    def test_get_by_username_found(self, pg_conn, existing_user):  # noqa: ARG002
         from app.database.dao.user_dao import UserDAO
 
         dao = UserDAO(pg_conn)
@@ -149,7 +149,7 @@ class TestUserDAO:
 
         assert result is None
 
-    def test_is_username_taken_true(self, pg_conn, existing_user):
+    def test_is_username_taken_true(self, pg_conn, existing_user):  # noqa: ARG002
         from app.database.dao.user_dao import UserDAO
 
         dao = UserDAO(pg_conn)
@@ -206,8 +206,9 @@ class TestUserDAOMockPaths:
     def test_create_user_fetchone_returns_none(self):
         """Couvre le chemin row is None dans create_user."""
         from unittest.mock import MagicMock
-        from app.database.dao.user_dao import UserDAO
+
         from app.business_object.user import User
+        from app.database.dao.user_dao import UserDAO
 
         mock_conn = MagicMock()
         mock_cursor = mock_conn.cursor.return_value.__enter__.return_value
@@ -222,6 +223,7 @@ class TestUserDAOMockPaths:
     def test_delete_user_exception_returns_false(self):
         """Couvre le chemin except dans delete_user."""
         from unittest.mock import MagicMock
+
         from app.database.dao.user_dao import UserDAO
 
         mock_conn = MagicMock()
