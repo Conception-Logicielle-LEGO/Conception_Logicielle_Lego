@@ -25,9 +25,16 @@ class PasswordService:
         ------
         Exception si l'utilisateur est introuvable ou le mot de passe incorrect
         """
-        user = self.dao.get_by_username(username)
-        if user is None:
-            raise Exception(f"Utilisateur '{username}' introuvable")
-        if hash_password(password, user.salt) != user.hashed_password:
-            raise Exception("Mot de passe incorrect")
-        return user
+        user_with_username = self.dao.get_user(username=username)
+        if user_with_username is None:
+            raise Exception(f"user with username {username} not found")
+
+        salt = user_with_username.salt
+        stored_hash = user_with_username.hashed_password
+
+        computed_hash = hash_password(password, salt)
+
+        if computed_hash != stored_hash:
+            raise Exception("Incorrect password")
+
+        return user_with_username
