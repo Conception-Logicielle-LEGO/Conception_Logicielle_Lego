@@ -44,7 +44,7 @@ Pour ajouter un package aux requirements, écrire "uv add <nom package>" dans le
 ## setup pythonpath
 ### run (dans le terminal) :
 
-On set le pythonpath dans le dossier backend. Exécutez depuis le dossier backend :
+On set le pythonpath dans le dossier backend. Exécutez depuis backend :
 ```bash
 export PYTHONPATH=$(pwd)
 ```
@@ -55,30 +55,33 @@ echo $PYTHONPATH
 ```
 
 # Mise en place BDD
-## BDD rebrickable (duckDB local) :
+## BDD en local : données LEGO rebrickable, format .duckdb :
 
-Exécuter (toujours depuis backend)
-# pour les urls image
-Rebrickable API (https://rebrickable.com/api/ → Mon compte -> setting -> API → Clé API)
+### pour les urls image
+Aller sur https://rebrickable.com/ et se créer un compte.
+Aller dans Account, "Settings", "API", et générer une clé d'API. La copier et la renseigner dans le .env :
 
+REBRICKABLE_API_KEY=<votre_clé_d'API>
+
+### Lancement de la BDD
+ATTENTION : compter 10 minutes pour l'exécution de ce script :
+Exécuter (toujours depuis backend) : 
 
 ```python
 python app/database/duckdb/init_db_lego.py
 ```
 
-## BDD Users (postgreSQL) :
-
-### Cas initialisation :
+## BDD relative aux utilisateurs (postgreSQL) :
 
 1) Lancer un service PostgreSQL sur onyxia avec ces paramètres :
 
 https://datalab.sspcloud.fr/launcher/databases/postgresql-cnpg?name=postgresql-cnpg&version=0.4.2&extension.pgvector=true&storage.size=«20Gi»&resources.limits.memory=«80Gi»&security.networkPolicy.enabled=false&autoLaunch=true 
 
-2) renseigner le nom d'utilisateur et le mot de passe du service dans le .env
+2) Renseigner le nom d'utilisateur et le mot de passe du service dans le .env
 
 3) Sur Onyxia : aller dans "Mon compte", puis "Connexion à Kubernetes". Copier le script et l'exécuter dans votre terminal.
 
-4) ouvrir un terminal et exécuter :
+4) Ouvrir un terminal et exécuter :
 
 ```bash
 kubectl get pods
@@ -98,16 +101,6 @@ cd backend
 python app/database/postgres/init_db_user.py
 ```
 
-### Cas où on veut accéder au port (autre utilisateur)
-
-Exécuter à la racine du projet :
-
-```bash
-kubectl apply -f kubernetes/pg-proxy.yaml
-kubectl port-forward pod/pg-proxy 5432:5432
-```
-
-
 # Mise en place frontend
 
 npm install -g create-vite
@@ -117,7 +110,7 @@ npm create vite@latest frontend
 Ignore files -> React -> Javascript -> no -> yes
 
 
-### Lancer l'application
+## Lancer l'application
 
 **Ouvrir 2 terminaux :**
 
@@ -135,7 +128,7 @@ npm run dev
 ```
 ✅ Frontend disponible sur : http://localhost:5173
 
-### Vérification
+## Vérification
 
 1. Ouvrir http://localhost:5173 dans le navigateur
 2. Vous devriez voir :
