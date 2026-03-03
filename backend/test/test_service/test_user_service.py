@@ -68,7 +68,7 @@ def test_change_password_wrong_old_password():
 
     with patch("app.service.user_service.PasswordService") as mock_password_service:
         instance = mock_password_service.return_value
-        instance.validate_username_password.return_value = None
+        instance.validate_username_password.side_effect = Exception("Mot de passe incorrect")
 
         service = UserService(user_dao=mock_dao)
 
@@ -110,6 +110,19 @@ def test_change_username_already_taken():
     service = UserService(user_dao=mock_dao)
 
     result = service.change_username("john", "newjohn")
+
+    assert result is False
+    mock_dao.update_user.assert_not_called()
+
+
+def test_change_username_user_not_found():
+    mock_dao = MagicMock()
+    mock_dao.is_username_taken.return_value = False
+    mock_dao.get_by_username.return_value = None
+
+    service = UserService(user_dao=mock_dao)
+
+    result = service.change_username("ghost", "newname")
 
     assert result is False
     mock_dao.update_user.assert_not_called()

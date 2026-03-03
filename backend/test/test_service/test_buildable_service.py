@@ -16,7 +16,7 @@ def make_service():
 # -------------------------
 
 
-def test_get_buildable_sets_returns_three_keys():
+def test_get_buildable_sets_returns_two_keys():
     pg_conn, duck = make_service()
 
     with (
@@ -31,7 +31,6 @@ def test_get_buildable_sets_returns_three_keys():
 
         assert "buildable" in result
         assert "partial" in result
-        assert "color_flexible" in result
 
 
 def test_get_buildable_sets_empty_collection():
@@ -49,7 +48,6 @@ def test_get_buildable_sets_empty_collection():
 
         assert result["buildable"] == []
         assert result["partial"] == []
-        assert result["color_flexible"] == []
 
 
 def test_load_user_stock_with_unbuilt_sets():

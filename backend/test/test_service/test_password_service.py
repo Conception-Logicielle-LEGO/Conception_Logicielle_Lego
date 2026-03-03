@@ -41,7 +41,7 @@ def test_validate_username_password_user_not_found():
     dao.get_user.return_value = None
 
     service = PasswordService(user_dao=dao)
-    with pytest.raises(Exception, match="not found"):
+    with pytest.raises(Exception, match="introuvable"):
         service.validate_username_password("unknown", "pass")
 
 
@@ -52,5 +52,5 @@ def test_validate_username_password_wrong_password():
 
     with patch("app.service.password_service.hash_password", return_value="wronghash"):
         service = PasswordService(user_dao=dao)
-        with pytest.raises(Exception, match="Incorrect password"):
+        with pytest.raises(Exception, match="Mot de passe incorrect"):
             service.validate_username_password("john", "wrongpass")
