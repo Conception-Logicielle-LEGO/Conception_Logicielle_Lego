@@ -1,137 +1,173 @@
-# Conception_Logicielle_Lego
-Faire une application ermettant de trouver les sets qu'il est possible de réaliser à partir de l'ensemble des pièces Lego possédées.
+# LEGO Set Finder
 
-## Lancement de l’application
+Application web permettant de trouver les sets LEGO assemblables à partir des pièces que vous possédez.
 
-### Prérequis
-
-Avant de lancer l’application, assurez-vous de disposer des éléments suivants :
-
-* **Python 3.11 ou supérieur**
-* **uv** installé et accessible depuis le terminal
-
-### optionnel : visualisation des diagrammes
-
-installer l'extension Mermaid Preview  v2.1.2 
+**Stack :** FastAPI (backend) · React/Vite (frontend) · DuckDB (catalogue LEGO Rebrickable) · PostgreSQL (données utilisateur)
 
 ---
 
-## Variables d'environnement :
-Copier la template dans un fichier .env
+## Quickstart
+
+### Prérequis
+
+- Python 3.13+ et [uv](https://docs.astral.sh/uv/)
+- Node.js 18+ et npm
+- Une instance PostgreSQL accessible (voir [Configuration PostgreSQL](#configuration-postgresql))
+- Un compte [Rebrickable](https://rebrickable.com) pour obtenir une clé API (nécessaire avant l'initialisation de la base LEGO)
+
+### Installation
 
 ```bash
+# 1. Copier le fichier de configuration
 cp .env.template .env
 ```
 
-### Création de l’environnement et installation des dépendances
+**Avant de continuer**, éditer `.env` et renseigner :
+- `POSTGRES_USER` et `POSTGRES_PASSWORD` — identifiants de votre instance PostgreSQL
+- `REBRICKABLE_API_KEY` — clé obtenue sur https://rebrickable.com → *Mon compte → Settings → API → Generate key*
 
-Depuis la racine du projet, exécutez les commandes suivantes;
+```bash
+# 2. Installer les dépendances backend
+cd backend
+uv sync
+cd ..
+
+# 3. Installer les dépendances frontend
+cd frontend
+npm install
+cd ..
+
+# 4. Initialiser la base DuckDB — télécharge les données Rebrickable (~10 min)
+#    Requiert REBRICKABLE_API_KEY dans .env
+cd backend
+python app/database/duckdb/init_db_lego.py
+cd ..
+
+# 5. Initialiser la base PostgreSQL
+cd backend
+python app/database/postgres/init_db_user.py
+cd ..
+```
+
+### Lancer l'application
+
+Ouvrir deux terminaux depuis la racine du projet :
+
+```bash
+# Terminal 1 — Backend
+uvicorn backend.app.api.fast_api:app --reload --port 8000
+```
+
+```bash
+# Terminal 2 — Frontend
+cd frontend
+npm run dev
+```
+
+- Backend : http://localhost:8000
+- Frontend : http://localhost:5173
+
+---
+
+## Scénario d'utilisation
+
+1. **Accueil** — Ouvrir http://localhost:5173 pour consulter les statistiques du catalogue (nombre de sets, pièces, thèmes) et les derniers sets ajoutés.
+
+2. **Recherche** — Aller sur `/search` pour chercher un set ou une pièce par nom. La recherche se déclenche automatiquement après quelques caractères.
+
+3. **Gestion de sa collection** — Dans `/account` :
+   - Ajouter des sets qu'on possède (déboîtés ou construits)
+   - Marquer un set comme "construit" pour exclure ses pièces du stock disponible
+   - Ajouter des pièces individuelles à sa collection
+
+4. **Wishlist** — Ajouter des sets ou des pièces à une liste de souhaits pour un achat futur.
+
+5. **Sets assemblables** — Consulter `/buildable` pour voir quels sets du catalogue peuvent être assemblés avec les pièces disponibles. Chaque set affiche un pourcentage de pièces disponibles.
+
+6. **Favoris** — Depuis n'importe quelle fiche set, l'ajouter aux favoris pour la retrouver rapidement dans `/account`.
+
+---
+
+## Lancer les tests
 
 ```bash
 cd backend
-uv venv
-uv sync
+pytest test/ -v
 ```
-lancer la commande 
-source .venv/bin/activate
 
+Tests ciblés :
 
-## Requirements :
-Géré par le Dockerfile et pyproject.toml
-Pour ajouter un package aux requirements, écrire "uv add <nom package>" dans le bash
-
-
-## setup pythonpath
-### run (dans le terminal) :
-
-On set le pythonpath dans le dossier backend. Exécutez depuis backend :
 ```bash
-export PYTHONPATH=$(pwd)
+# Tests unitaires (business objects) — aucune base de données requise
+pytest test/test_BO/ -v
+
+# Tests de service
+pytest test/test_service/ -v
+
+# Tests DAO (requiert PostgreSQL)
+pytest test/test_dao/ -v
 ```
 
-### vérifier avec :
+> Les tests PostgreSQL nécessitent une instance configurée via les variables d'environnement.
+> Les tests DuckDB sont ignorés automatiquement si `lego_test.duckdb` est absent.
+
+---
+
+## Linting et formatage
+
 ```bash
-echo $PYTHONPATH
+cd backend
+ruff check .          # vérification
+ruff check --fix .    # correction automatique
+ruff format .         # formatage
 ```
 
-# Mise en place BDD
-## BDD en local : données LEGO rebrickable, format .duckdb :
+---
 
-### pour les urls image
-Aller sur https://rebrickable.com/ et se créer un compte.
-Aller dans Account, "Settings", "API", et générer une clé d'API. La copier et la renseigner dans le .env :
+## Configuration PostgreSQL
 
-REBRICKABLE_API_KEY=<votre_clé_d'API>
+Option A — PostgreSQL local avec Docker :
 
-### Lancement de la BDD
-ATTENTION : compter 10 minutes pour l'exécution de ce script :
-Exécuter (toujours depuis backend) : 
-
-```python
-python app/database/duckdb/init_db_lego.py
+```bash
+docker compose up -d db
 ```
 
-## BDD relative aux utilisateurs (postgreSQL) :
+Option B — PostgreSQL sur Onyxia (SSP Cloud) :
 
-1) Lancer un service PostgreSQL sur onyxia avec ces paramètres :
-
-https://datalab.sspcloud.fr/launcher/databases/postgresql-cnpg?name=postgresql-cnpg&version=0.4.2&extension.pgvector=true&storage.size=«20Gi»&resources.limits.memory=«80Gi»&security.networkPolicy.enabled=false&autoLaunch=true 
-
-2) Renseigner le nom d'utilisateur et le mot de passe du service dans le .env
-
-3) Sur Onyxia : aller dans "Mon compte", puis "Connexion à Kubernetes". Copier le script et l'exécuter dans votre terminal.
-
-4) Ouvrir un terminal et exécuter :
+1. Lancer un service PostgreSQL sur [Onyxia](https://datalab.sspcloud.fr/launcher/databases/postgresql-cnpg)
+2. Renseigner les identifiants dans `.env`
+3. Configurer le port-forward Kubernetes :
 
 ```bash
 kubectl get pods
-```
-Cette commande retourne les services onyxia lancés. Copier le nom du service postgresql et exécutez :
-
-```bash
-export POD=<nom_du_service>
-echo $POD
-
+export POD=<nom_du_pod_postgresql>
 kubectl port-forward $POD 5432:5432
 ```
-5) Ouvrir un autre terminal et exécutez:
 
-```python
-cd backend
-python app/database/postgres/init_db_user.py
+---
+
+## Architecture
+
+```
+Conception_Logicielle_Lego/
+├── backend/
+│   └── app/
+│       ├── api/              # Routes FastAPI
+│       ├── business_object/  # Objets métier (User, Set, Part…)
+│       ├── service/          # Logique métier
+│       └── database/
+│           ├── dao/          # Accès aux données
+│           ├── duckdb/       # Catalogue LEGO (lecture seule)
+│           └── postgres/     # Données utilisateur (lecture/écriture)
+├── frontend/
+│   └── src/
+│       ├── pages/            # Pages de l'application
+│       ├── components/       # Composants réutilisables
+│       └── api/              # Client HTTP (axios)
+├── docs/                     # Documentation technique (modèle de données)
+└── .github/workflows/        # Pipelines CI (tests, lint)
 ```
 
-# Mise en place frontend
+Le catalogue LEGO est stocké dans DuckDB (lecture seule). Les données utilisateur (collection, wishlist, favoris) sont dans PostgreSQL. Les deux bases sont interrogées indépendamment, sans clés étrangères croisées.
 
-npm install -g create-vite
-npm create vite@latest frontend
-
-
-Ignore files -> React -> Javascript -> no -> yes
-
-
-## Lancer l'application
-
-**Ouvrir 2 terminaux :**
-
-#### Terminal 1 - Backend (API)
-```bash
-cd ~/Conception_Logicielle_Lego
-uvicorn backend.app.api.fast_api:app --reload --port 8000
-```
-✅ Backend disponible sur : http://localhost:8000
-
-#### Terminal 2 - Frontend (Interface)
-```bash
-cd ~/Conception_Logicielle_Lego/frontend
-npm run dev
-```
-✅ Frontend disponible sur : http://localhost:5173
-
-## Vérification
-
-1. Ouvrir http://localhost:5173 dans le navigateur
-2. Vous devriez voir :
-   - Le header "🧱 LEGO Database Explorer"
-   - Les statistiques (Total Sets, Pièces, Thèmes)
-   - La liste des sets LEGO
+Pour le modèle de données complet, voir [`docs/Physical_data_model.md`](docs/Physical_data_model.md).
