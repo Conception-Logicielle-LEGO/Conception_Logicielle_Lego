@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import api from '../api/api_test.js';
 
 const AuthContext = createContext(null);
 
@@ -18,16 +19,20 @@ export function AuthProvider({ children }) {
     setIsLoading(false);
   }, []);
 
-  function login(email, password) {
-    // Mock auth — accepte n'importe quel email/mot de passe
-    const mockUser = {
-      id: 1,
-      email,
-      username: email.split('@')[0],
-    };
-    setUser(mockUser);
-    localStorage.setItem('lego_user', JSON.stringify(mockUser));
-    return mockUser;
+  async function login(username, password) {
+    const { data } = await api.post('/users/login', { username, password });
+    const userObj = { id: data.id_user, username: data.username };
+    setUser(userObj);
+    localStorage.setItem('lego_user', JSON.stringify(userObj));
+    return userObj;
+  }
+
+  async function register(username, password) {
+    const { data } = await api.post('/users', { username, password });
+    const userObj = { id: data.id_user, username: data.username };
+    setUser(userObj);
+    localStorage.setItem('lego_user', JSON.stringify(userObj));
+    return userObj;
   }
 
   function logout() {
@@ -36,7 +41,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   );

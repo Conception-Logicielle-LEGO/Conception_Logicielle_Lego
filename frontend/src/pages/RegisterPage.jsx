@@ -6,11 +6,12 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 
-export default function LoginPage() {
-  const { login, user } = useAuth();
+export default function RegisterPage() {
+  const { register, user } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -22,18 +23,22 @@ export default function LoginPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    if (!username || !password) {
+    if (!username || !password || !confirmPassword) {
       setError('Veuillez remplir tous les champs.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Les mots de passe ne correspondent pas.');
       return;
     }
     setIsSubmitting(true);
     try {
-      await login(username, password);
+      await register(username, password);
       navigate('/account', { replace: true });
     } catch (err) {
       const status = err?.response?.status;
-      if (status === 401) {
-        setError('Nom d\'utilisateur ou mot de passe incorrect.');
+      if (status === 409) {
+        setError('Ce nom d\'utilisateur est déjà pris.');
       } else {
         setError('Une erreur est survenue. Veuillez réessayer.');
       }
@@ -47,9 +52,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="mx-auto mb-2 text-4xl">🧱</div>
-          <CardTitle className="text-2xl">Connexion</CardTitle>
+          <CardTitle className="text-2xl">Créer un compte</CardTitle>
           <CardDescription>
-            Accédez à votre compte LEGO Finder
+            Rejoignez LEGO Finder et gérez votre collection
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -73,20 +78,31 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
+                autoComplete="new-password"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
               />
             </div>
             {error && (
               <p className="text-sm text-red-600">{error}</p>
             )}
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Connexion…' : 'Se connecter'}
+              {isSubmitting ? 'Création…' : 'Créer mon compte'}
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-gray-500">
-            Pas encore de compte ?{' '}
-            <Link to="/register" className="text-red-600 hover:underline">
-              S'inscrire
+            Déjà inscrit ?{' '}
+            <Link to="/login" className="text-red-600 hover:underline">
+              Se connecter
             </Link>
           </p>
         </CardContent>

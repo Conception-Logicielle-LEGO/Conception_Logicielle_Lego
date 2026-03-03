@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.api.dependencies import DuckDep, PgDep
 from app.database.dao.collection_dao import CollectionDAO
-from app.dto import AddSetBody, UpdateBuiltBody
+from app.dto.collection_dto import AddSetBody, UpdateBuiltBody
 from app.service.collection_service import CollectionService
 
 
