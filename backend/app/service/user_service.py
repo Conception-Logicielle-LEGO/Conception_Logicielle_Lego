@@ -26,11 +26,11 @@ class UserService:
 
         new_user = User(
             username=username,
-            password=hashed_password,
+            hashed_password=hashed_password,
             salt=salt,
         )
 
-        return self.create_user(new_user)
+        return self.user_dao.create_user(new_user)
 
     def change_password(self, username, old_password, new_password):
         """
