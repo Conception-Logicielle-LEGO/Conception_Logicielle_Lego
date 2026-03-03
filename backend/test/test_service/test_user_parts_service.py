@@ -46,7 +46,7 @@ def test_update_quantity():
     service, dao, conn = make_service()
     dao.update_quantity.return_value = True
     result = service.update_quantity(user_id=1, part_num="3001", color_id=4, quantity=5)
-    dao.update_quantity.assert_called_once_with(1, "3001", 4, 5)
+    dao.update_quantity.assert_called_once_with(1, "3001", 4, 5, False)
     conn.commit.assert_called_once()
     assert result is True
 

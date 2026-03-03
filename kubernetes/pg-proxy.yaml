@@ -8,4 +8,4 @@ spec:
     image: alpine/socat
     args:
       - TCP-LISTEN:5432,fork
-      - TCP:postgresql-cnpg-951239-rw.user-kalvr.svc.cluster.local:5432
+      - TCP:postgresql-cnpg-112794-rw.user-lucasrt.svc.cluster.local:5432

@@ -85,3 +85,152 @@ class TestDeleteUser:
         with pg_conn.cursor() as cur:
             cur.execute("DELETE FROM users WHERE id_user = %s", (-999,))
             assert cur.rowcount == 0
+
+
+class TestUserDAO:
+    """Tests utilisant la classe UserDAO directement."""
+
+    def test_create_user_via_dao(self, pg_conn):
+        from app.business_object.user import User
+        from app.database.dao.user_dao import UserDAO
+
+        dao = UserDAO(pg_conn)
+        user = User(username="dao_user", hashed_password="hash", salt="salt")
+        result = dao.create_user(user)
+
+        assert result is not None
+        assert result.username == "dao_user"
+        assert result.id_user is not None
+
+    def test_create_user_duplicate_returns_none(self, pg_conn):
+        from app.business_object.user import User
+        from app.database.dao.user_dao import UserDAO
+
+        dao = UserDAO(pg_conn)
+        user = User(username="dup_user", hashed_password="hash", salt="salt")
+        dao.create_user(user)
+        pg_conn.commit()
+        result = dao.create_user(user)
+        pg_conn.rollback()
+
+        assert result is None
+
+    def test_get_by_username_found(self, pg_conn, existing_user):  # noqa: ARG002
+        from app.database.dao.user_dao import UserDAO
+
+        dao = UserDAO(pg_conn)
+        result = dao.get_by_username("test_user")
+
+        assert result is not None
+        assert result.username == "test_user"
+
+    def test_get_by_username_not_found(self, pg_conn):
+        from app.database.dao.user_dao import UserDAO
+
+        dao = UserDAO(pg_conn)
+        result = dao.get_by_username("inconnu")
+
+        assert result is None
+
+    def test_get_by_id_found(self, pg_conn, existing_user):
+        from app.database.dao.user_dao import UserDAO
+
+        dao = UserDAO(pg_conn)
+        result = dao.get_by_id(existing_user)
+
+        assert result is not None
+        assert result.id_user == existing_user
+
+    def test_get_by_id_not_found(self, pg_conn):
+        from app.database.dao.user_dao import UserDAO
+
+        dao = UserDAO(pg_conn)
+        result = dao.get_by_id(-999)
+
+        assert result is None
+
+    def test_is_username_taken_true(self, pg_conn, existing_user):  # noqa: ARG002
+        from app.database.dao.user_dao import UserDAO
+
+        dao = UserDAO(pg_conn)
+        assert dao.is_username_taken("test_user") is True
+
+    def test_is_username_taken_false(self, pg_conn):
+        from app.database.dao.user_dao import UserDAO
+
+        dao = UserDAO(pg_conn)
+        assert dao.is_username_taken("utilisateur_inexistant") is False
+
+    def test_update_user_username(self, pg_conn, existing_user):
+        from app.database.dao.user_dao import UserDAO
+
+        dao = UserDAO(pg_conn)
+        result = dao.update_user(True, "nouveau_nom", existing_user)
+
+        assert result is True
+        updated = dao.get_by_id(existing_user)
+        assert updated.username == "nouveau_nom"
+
+    def test_update_user_password(self, pg_conn, existing_user):
+        from app.database.dao.user_dao import UserDAO
+
+        dao = UserDAO(pg_conn)
+        result = dao.update_user(False, "new_hashed_pw", existing_user)
+
+        assert result is True
+
+    def test_update_user_not_found(self, pg_conn):
+        from app.database.dao.user_dao import UserDAO
+
+        dao = UserDAO(pg_conn)
+        result = dao.update_user(True, "nom", -999)
+
+        assert result is False
+
+    def test_delete_user_via_dao(self, pg_conn, existing_user):
+        from app.database.dao.user_dao import UserDAO
+
+        dao = UserDAO(pg_conn)
+        result = dao.delete_user(existing_user)
+
+        assert result is True
+        assert dao.get_by_id(existing_user) is None
+
+
+# ---------------------------------------------------------------------------
+# Tests avec mock — chemins d'exception (sans PostgreSQL)
+# ---------------------------------------------------------------------------
+
+
+class TestUserDAOMockPaths:
+    def test_create_user_fetchone_returns_none(self):
+        """Couvre le chemin row is None dans create_user."""
+        from unittest.mock import MagicMock
+
+        from app.business_object.user import User
+        from app.database.dao.user_dao import UserDAO
+
+        mock_conn = MagicMock()
+        mock_cursor = mock_conn.cursor.return_value.__enter__.return_value
+        mock_cursor.fetchone.return_value = None
+
+        dao = UserDAO(mock_conn)
+        user = User(username="x", hashed_password="h", salt="s")
+        result = dao.create_user(user)
+
+        assert result is None
+
+    def test_delete_user_exception_returns_false(self):
+        """Couvre le chemin except dans delete_user."""
+        from unittest.mock import MagicMock
+
+        from app.database.dao.user_dao import UserDAO
+
+        mock_conn = MagicMock()
+        mock_cursor = mock_conn.cursor.return_value.__enter__.return_value
+        mock_cursor.execute.side_effect = Exception("DB error")
+
+        dao = UserDAO(mock_conn)
+        result = dao.delete_user(99)
+
+        assert result is False

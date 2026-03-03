@@ -101,6 +101,23 @@ cd backend
 python app/database/postgres/init_db_user.py
 ```
 
+### Cas où on veut accéder au port (autre utilisateur)
+
+Le fichier `kubernetes/pg-proxy.yaml` contient le nom du service PostgreSQL propre à chaque utilisateur. Avant de l'appliquer, vérifier que le service correspond bien à votre namespace :
+
+```bash
+kubectl get svc
+```
+
+Mettre à jour `kubernetes/pg-proxy.yaml` si nécessaire (remplacer le nom du service et le namespace), puis exécuter à la racine du projet :
+
+```bash
+kubectl apply -f kubernetes/pg-proxy.yaml
+kubectl port-forward pod/pg-proxy 5432:5432
+```
+
+
+
 # Mise en place frontend
 
 npm install -g create-vite
@@ -135,3 +152,29 @@ npm run dev
    - Le header "🧱 LEGO Database Explorer"
    - Les statistiques (Total Sets, Pièces, Thèmes)
    - La liste des sets LEGO
+
+---
+
+## Lancer les tests
+
+Les tests requièrent une connexion PostgreSQL active (via port-forward).
+
+### 1. Ouvrir le tunnel PostgreSQL
+
+```bash
+kubectl apply -f kubernetes/pg-proxy.yaml
+kubectl port-forward pod/pg-proxy 5432:5432 &
+```
+
+### 2. Lancer les tests
+
+```bash
+cd backend
+uv run pytest -q
+```
+
+### Avec coverage
+
+```bash
+uv run pytest --cov=app --cov-report=term-missing -q
+```

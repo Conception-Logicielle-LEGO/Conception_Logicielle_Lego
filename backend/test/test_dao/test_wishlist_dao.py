@@ -128,3 +128,33 @@ class TestWishlistParts:
 
         parts = dao_wishlist.get_parts(existing_user)
         assert not any(p["part_num"] == "3001" for p in parts)
+
+
+# ---------------------------------------------------------------------------
+# Tests — update_part_quantity
+# ---------------------------------------------------------------------------
+
+
+class TestUpdatePartQuantity:
+    def test_update_quantity_returns_true(self, dao_wishlist, existing_user):
+        dao_wishlist.add_part(existing_user, "3001", 1, 2)
+
+        result = dao_wishlist.update_part_quantity(existing_user, "3001", 1, 5)
+
+        assert result is True
+
+    def test_update_quantity_changes_value(self, dao_wishlist, existing_user):
+        dao_wishlist.add_part(existing_user, "3001", 1, 2)
+        dao_wishlist.update_part_quantity(existing_user, "3001", 1, 7)
+
+        parts = dao_wishlist.get_parts(existing_user)
+        part = next(p for p in parts if p["part_num"] == "3001")
+
+        assert part["quantity"] == 7
+
+    def test_update_nonexistent_part_returns_false(self, dao_wishlist, existing_user):
+        result = dao_wishlist.update_part_quantity(
+            existing_user, "part_inexistant", 999, 5
+        )
+
+        assert result is False
