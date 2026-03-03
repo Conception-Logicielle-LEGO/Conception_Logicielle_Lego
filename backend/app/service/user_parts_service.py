@@ -34,9 +34,16 @@ class UserPartsService:
         return result
 
     def update_quantity(
-        self, user_id: int, part_num: str, color_id: int, quantity: int
+        self,
+        user_id: int,
+        part_num: str,
+        color_id: int,
+        quantity: int,
+        is_used: bool = False,
     ) -> bool:
-        result = self.dao.update_quantity(user_id, part_num, color_id, quantity)
+        result = self.dao.update_quantity(
+            user_id, part_num, color_id, quantity, is_used
+        )
         self.conn.commit()
         return result
 

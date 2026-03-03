@@ -1,135 +1,130 @@
 from app.business_object.user import User
-from app.database.dao.base_dao import BaseDAO
 
 
-class UserDAO(BaseDAO):
+class UserDAO:
     """
-    DAO pour gérer les utilisateurs dans la base de données.
-    Hérite de BaseDAO pour bénéficier des méthodes génériques.
+    DAO pour gérer les utilisateurs dans la base de données PostgreSQL.
+    Utilise une connexion injectée (pattern CollectionDAO/FavoriteDAO).
+    Ne fait jamais commit() — la gestion des transactions est à la charge de l'appelant.
     """
 
-    def get_table_name(self) -> str:
-        return "users"
-
-    def get_allowed_columns(self) -> set[str]:
-        return {"username", "id_user"}
-
-    def from_row(self, row: dict) -> User:
-        """Convertit une ligne SQL en objet User"""
-        return User.from_dict(row)
+    def __init__(self, pg_conn):
+        self.conn = pg_conn
 
     def create_user(self, user: User) -> User | None:
         """
-        Créer un nouvel utilisateur dans la base de données
+        Crée un nouvel utilisateur dans la base de données.
 
         Paramètres :
         ------------
         user : User
-            Utilisateur de type User sans id_user
+            Utilisateur sans id_user (sera attribué par la BDD)
 
         Renvoie :
         ---------
         User | None :
-            Un objet de type User avec l'id_user créé par la BDD,
-            ou None en cas d'erreur
+            Utilisateur avec l'id_user assigné, ou None en cas d'erreur
         """
-        with self.conn as conn:
-            try:
-                cursor = conn.execute(
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(
                     """
-                    INSERT INTO users (username, password, salt) VALUES (?, ?, ?)
+                    INSERT INTO users (username, hashed_password, salt)
+                    VALUES (%s, %s, %s)
                     RETURNING id_user
-                """,
-                    [user.username, user.password, user.salt],
+                    """,
+                    [user.username, user.hashed_password, user.salt],
                 )
-                id_user = cursor.fetchone()[0]
+                row = cur.fetchone()
+                if row is None:
+                    return None
                 return User(
                     username=user.username,
-                    password=user.password,
-                    id_user=id_user,
+                    hashed_password=user.hashed_password,
                     salt=user.salt,
+                    id_user=row["id_user"],
                 )
-            except Exception as e:
-                print(f"Error creating user: {e}")
-                return None
+        except Exception as e:
+            print(f"Erreur création utilisateur : {e}")
+            return None
 
-    def delete_user(self, id_user: int) -> bool:
+    def get_by_username(self, username: str) -> User | None:
         """
-        Supprime un utilisateur à partir de son id_user
-
-        Paramètre :
-        -----------
-        id_user : int
-            ID de l'utilisateur à supprimer
+        Récupère un utilisateur par son username.
 
         Renvoie :
         ---------
-        bool :
-            True si succès, False si échec
+        User | None
+        """
+        with self.conn.cursor() as cur:
+            cur.execute("SELECT * FROM users WHERE username = %s", [username])
+            row = cur.fetchone()
+            return User.from_dict(dict(row)) if row else None
+
+    def get_by_id(self, id_user: int) -> User | None:
+        """
+        Récupère un utilisateur par son id_user.
+
+        Renvoie :
+        ---------
+        User | None
+        """
+        with self.conn.cursor() as cur:
+            cur.execute("SELECT * FROM users WHERE id_user = %s", [id_user])
+            row = cur.fetchone()
+            return User.from_dict(dict(row)) if row else None
+
+    def delete_user(self, id_user: int) -> bool:
+        """
+        Supprime un utilisateur à partir de son id_user.
+
+        Renvoie :
+        ---------
+        bool : True si succès, False si erreur
         """
         try:
-            self.conn.execute("DELETE FROM users WHERE id_user = ?", [id_user])
-            return True
+            with self.conn.cursor() as cur:
+                cur.execute("DELETE FROM users WHERE id_user = %s", [id_user])
+                return True
         except Exception as e:
-            print(f"Error deleting user: {e}")
+            print(f"Erreur suppression utilisateur : {e}")
             return False
 
     def update_user(self, update_username: bool, new_entry: str, id_user: int) -> bool:
         """
-        DAO pour changer soit le username soit le mot de passe d'un utilisateur connecté
+        Met à jour le username ou le mot de passe d'un utilisateur.
 
         Paramètres :
         ------------
         update_username : bool
-            True pour mettre à jour le username, False pour le mot de passe
+            True pour modifier le username, False pour le mot de passe
         new_entry : str
-            Nouvelle entrée (nouveau username ou mot de passe déjà hashé)
+            Nouvelle valeur (username ou hashed_password)
         id_user : int
-            ID de l'utilisateur
 
         Renvoie :
         ---------
-        bool :
-            True si succès, False si échec
+        bool : True si la ligne a été modifiée
         """
-        if update_username:
-            result = self.conn.execute(
-                """
-                UPDATE users
-                SET username = ?
-                WHERE id_user = ?
-                RETURNING id_user;""",
+        col = "username" if update_username else "hashed_password"
+        with self.conn.cursor() as cur:
+            cur.execute(
+                f"UPDATE users SET {col} = %s WHERE id_user = %s RETURNING id_user",
                 [new_entry, id_user],
-            ).fetchone()
-        else:
-            result = self.conn.execute(
-                """
-                UPDATE users
-                SET password = ?
-                WHERE id_user = ?
-                RETURNING id_user;""",
-                [new_entry, id_user],
-            ).fetchone()
-        return result is not None
+            )
+            return cur.fetchone() is not None
 
     def is_username_taken(self, username: str) -> bool:
         """
         Vérifie si un username est déjà utilisé.
-        Utile pour assurer l'unicité des usernames lors de l'inscription
-        ou modification de profil des utilisateurs.
-
-        Paramètre :
-        -----------
-        username : str
-            Nom d'utilisateur à tester
 
         Renvoie :
         ---------
-        bool :
-            True si le nom est occupé, False s'il est libre
-
-        Note :
-        ------
-        Utilise la méthode exists() héritée de BaseDAO
+        bool : True si le nom est pris, False s'il est libre
         """
-        return self.exists("username", username)
+        with self.conn.cursor() as cur:
+            cur.execute(
+                "SELECT COUNT(*) AS count FROM users WHERE username = %s", [username]
+            )
+            row = cur.fetchone()
+            return row["count"] > 0 if row else False

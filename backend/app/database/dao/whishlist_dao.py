@@ -111,3 +111,22 @@ class WishlistDAO:
             cur.execute(query, (user_id,))
             rows = cur.fetchall()
             return [dict(row) for row in rows]
+
+    def update_part_quantity(
+        self, user_id: int, part_num: str, color_id: int, quantity: int
+    ) -> bool:
+        """Met à jour la quantité souhaitée d'une pièce dans la wishlist.
+
+        Returns:
+            True si mis à jour, False si la pièce n'est pas dans la wishlist.
+        """
+        query = """
+            UPDATE wishlist_parts
+            SET quantity = %s
+            WHERE id_wishlist IN (
+                SELECT id_wishlist FROM wishlist WHERE id_user = %s
+            ) AND part_num = %s AND color_id = %s
+        """
+        with self.connection.cursor() as cur:
+            cur.execute(query, (quantity, user_id, part_num, color_id))
+            return cur.rowcount > 0
