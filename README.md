@@ -19,6 +19,7 @@ Application web permettant de trouver les sets LEGO assemblables à partir des p
 
 ```bash
 # 1. Copier le fichier de configuration
+cd backend
 cp .env.template .env
 ```
 
@@ -26,49 +27,19 @@ cp .env.template .env
 - `POSTGRES_USER` et `POSTGRES_PASSWORD` — identifiants de votre instance PostgreSQL
 - `REBRICKABLE_API_KEY` — clé obtenue sur https://rebrickable.com → *Mon compte → Settings → API → Generate key*
 
-```bash
-# 2. Installer les dépendances backend
-cd backend
-uv sync
-cd ..
-
-# 3. Installer les dépendances frontend
-cd frontend
-npm install
-cd ..
-
-# 4. Initialiser la base DuckDB — télécharge les données Rebrickable (~10 min)
-#    Requiert REBRICKABLE_API_KEY dans .env
-### Attention : prévoir 10 minutes
-cd backend
-export PYTHONPATH=$(pwd)
-python app/database/duckdb/init_db_lego.py
-cd ..
-
-# 5. Initialiser la base PostgreSQL
-cd backend
-python app/database/postgres/init_db_user.py
-cd ..
-```
-
-### Lancer l'application
-
-Ouvrir deux terminaux depuis la racine du projet :
+### Lancement avec Docker Compose en local
 
 ```bash
-# Terminal 1 — Backend
-export PYTHONPATH=$(pwd)/backend
-uvicorn backend.app.api.fast_api:app --reload --port 8000
-```
+# Tout lancer
+sudo docker compose build
+sudo docker compose up
 
-```bash
-# Terminal 2 — Frontend
-cd frontend
-npm run dev
+# Juste le backend + base de données
+sudo docker compose build backend
+sudo docker compose up backend
 ```
-
-- Backend : http://localhost:8000
-- Frontend : http://localhost:5173
+le backend est disponible sur : http://localhost:8000
+l'application est disponible sur : http://localhost:5173
 
 ---
 
@@ -133,22 +104,6 @@ ruff format .         # formatage
 ```
 
 ---
-
-## Configuration PostgreSQL
-PostgreSQL sur Onyxia (SSP Cloud) :
-
-1. Lancer un service PostgreSQL sur [Onyxia](https://datalab.sspcloud.fr/launcher/databases/postgresql-cnpg)
-2. Renseigner les identifiants dans `.env`
-3. Configurer le port-forward Kubernetes :
-
-Aller dans "mon compte", "connexion à Kubernetes", puis copier le script de configuration et lancez le depuis votre terminal.
-Puis exécutez :
-
-```bash
-kubectl get pods
-export POD=<nom_du_pod_postgresql>
-kubectl port-forward $POD 5432:5432
-```
 
 ---
 
