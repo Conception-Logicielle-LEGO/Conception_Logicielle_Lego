@@ -21,6 +21,7 @@ Application web permettant de trouver les sets LEGO assemblables à partir des p
 # 1. Copier le fichier de configuration
 cd backend
 cp .env.template .env
+cd ..
 ```
 
 **Avant de continuer**, éditer `.env` et renseigner :
