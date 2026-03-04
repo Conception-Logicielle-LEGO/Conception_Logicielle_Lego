@@ -11,7 +11,7 @@ class FavoriteDAO:
         Initialise le DAO avec une connexion à la base de données.
 
         Args:
-            connection: Connexion DuckDB ou PostgreSQL
+            connection: Connexion PostgreSQL
         """
         self.connection = connection
 

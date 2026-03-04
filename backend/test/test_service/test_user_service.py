@@ -96,7 +96,9 @@ def test_change_password_wrong_old_password():
 
     with patch("app.service.user_service.PasswordService") as mock_password_service:
         instance = mock_password_service.return_value
-        instance.validate_username_password.return_value = None
+        instance.validate_username_password.side_effect = Exception(
+            "Mot de passe incorrect"
+        )
 
         service = UserService(user_dao=mock_dao)
 
@@ -126,7 +128,7 @@ def test_change_username_success():
     fake_user.id_user = 1
 
     mock_dao.is_username_taken.return_value = False
-    mock_dao.get_user.return_value = fake_user
+    mock_dao.get_by_username.return_value = fake_user
     mock_dao.update_user.return_value = True
 
     service = UserService(user_dao=mock_dao)

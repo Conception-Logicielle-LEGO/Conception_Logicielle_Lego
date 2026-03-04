@@ -30,10 +30,10 @@ app.include_router(system_controller.router)
 
 def run_app():
     """
-    Starts the FastAPI application using Uvicorn.
-    - Runs on host 0.0.0.0 (accessible from outside container)
+    Démarre l'application FastAPI via Uvicorn.
+    - Écoute sur 0.0.0.0 (accessible hors conteneur)
     - Port 8000
-    - Reload enabled for development
+    - Rechargement automatique activé (développement)
     """
     uvicorn.run(
         "app.api.fast_api:app", host="0.0.0.0", port=8000, reload=True

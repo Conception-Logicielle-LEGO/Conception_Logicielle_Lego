@@ -34,15 +34,15 @@ def generate_embeddings(conn: duckdb.DuckDBPyConnection | None = None) -> None:
     """Génère les embeddings et les indexes HNSW dans la base DuckDB.
 
     Args:
-        conn: Connexion DuckDB ouverte en mode WRITE.
-              Si None, ouvre DB_PATH en mode WRITE (usage standalone).
+        conn: Connexion DuckDB ouverte en écriture.
+              Si None, ouvre DB_PATH en écriture (usage standalone).
     """
     standalone = conn is None
     if standalone:
         if not DB_PATH.exists():
             print(f"Erreur : base DuckDB introuvable : {DB_PATH}")
             sys.exit(1)
-        print(f"Ouverture de {DB_PATH} en mode WRITE...")
+        print(f"Ouverture de {DB_PATH} en écriture...")
         conn = duckdb.connect(str(DB_PATH), read_only=False)
 
     try:

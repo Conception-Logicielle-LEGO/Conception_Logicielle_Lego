@@ -63,7 +63,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <StatCard
             icon={Layers}
-            label="Total sets"
+            label="Sets"
             value={stats.totalSets?.toLocaleString()}
             color="bg-red-500"
           />
