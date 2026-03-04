@@ -2,12 +2,11 @@ services:
 
   backend:
     build: ./backend
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
-    ports:
-      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    network_mode: host
     volumes:
-      - ./backend:/app
+      - ./backend/app/database/duckdb:/backend/app/database/duckdb
 
   frontend:
     build: ./frontend
@@ -17,6 +16,3 @@ services:
       - backend
     volumes:
       - ./frontend:/app
-
-volumes:
-  postgres_data:

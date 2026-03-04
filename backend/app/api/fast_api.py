@@ -1,6 +1,9 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 import uvicorn
 
+from app.api.dependencies import _ensure_pg_conn
 from app.config.app_config import add_cors_middleware
 from app.controller import (
     buildable_controller,
@@ -14,7 +17,13 @@ from app.controller import (
 )
 
 
-app = FastAPI(title="LEGO Finder API")
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    _ensure_pg_conn()  # établit la connexion persistante (garde le port-forward ouvert)
+    yield
+
+
+app = FastAPI(title="LEGO Finder API", lifespan=lifespan)
 
 add_cors_middleware(app)
 
