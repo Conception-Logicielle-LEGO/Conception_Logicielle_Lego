@@ -1,25 +1,41 @@
 @import "tailwindcss";
 
+@theme {
+  /* Échelle de gris → tons rose poudré */
+  --color-white:    #ffffff;
+  --color-gray-50:  #fdf0f4;
+  --color-gray-100: #fae0e8;
+  --color-gray-200: #f0c4d4;
+  --color-gray-300: #dfa0b8;
+  --color-gray-400: #c07090;
+  --color-gray-500: #8f4a68;
+  --color-gray-600: #6e3350;
+  --color-gray-700: #4f2038;
+  --color-gray-800: #341220;
+  --color-gray-900: #1e0a12;
+  --color-gray-950: #0f0509;
+}
+
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
+  --background: 340 70% 96%;
+  --foreground: 330 60% 10%;
   --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
+  --card-foreground: 330 60% 10%;
   --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 0 72% 51%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 0 72% 51%;
+  --popover-foreground: 330 60% 10%;
+  --primary: 330 75% 42%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 340 50% 90%;
+  --secondary-foreground: 330 60% 15%;
+  --muted: 340 45% 92%;
+  --muted-foreground: 330 25% 45%;
+  --accent: 330 75% 42%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 340 35% 82%;
+  --input: 340 35% 82%;
+  --ring: 330 75% 42%;
   --radius: 0.5rem;
 }
 
@@ -30,8 +46,8 @@
 body {
   margin: 0;
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: #fdf0f4;
+  color: #1e0a12;
 }
 
 /* Keep loader animation for Loader component */
@@ -41,8 +57,8 @@ body {
 }
 
 .loader {
-  border: 4px solid #f1faee;
-  border-top: 4px solid #e63946;
+  border: 4px solid #f0c4d4;
+  border-top: 4px solid #be185d;
   border-radius: 50%;
   width: 50px;
   height: 50px;

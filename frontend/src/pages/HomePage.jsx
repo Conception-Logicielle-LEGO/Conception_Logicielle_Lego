@@ -51,7 +51,7 @@ export default function HomePage() {
       {/* En-tête */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">
-          🧱 Catalogue LEGO
+          🎀 Catalogue LEGO
         </h1>
         <p className="mt-1 text-gray-500">
           Trouvez les sets que vous pouvez assembler avec vos pièces

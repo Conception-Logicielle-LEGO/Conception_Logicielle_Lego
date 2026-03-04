@@ -87,7 +87,7 @@ export default function BuildablePage() {
           {partial.length > 0 && (
             <section>
               <h2 className="mb-3 text-lg font-semibold text-yellow-700">
-                🔨 Presque constructibles ≥ 80 % ({partial.length})
+                💔​🥀​🥀​🥀​ Presque constructibles ≥ 80 % ({partial.length})
               </h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {partial.map((set) => (

@@ -41,6 +41,7 @@ cd ..
 #    Requiert REBRICKABLE_API_KEY dans .env
 ### Attention : prévoir 10 minutes
 cd backend
+export PYTHONPATH=$(pwd)
 python app/database/duckdb/init_db_lego.py
 cd ..
 
@@ -56,6 +57,7 @@ Ouvrir deux terminaux depuis la racine du projet :
 
 ```bash
 # Terminal 1 — Backend
+export PYTHONPATH=$(pwd)/backend
 uvicorn backend.app.api.fast_api:app --reload --port 8000
 ```
 
@@ -111,6 +113,13 @@ pytest test/test_dao/ -v
 
 > Les tests PostgreSQL nécessitent une instance configurée via les variables d'environnement.
 > Les tests DuckDB sont ignorés automatiquement si `lego_test.duckdb` est absent.
+
+Avec rapport de couverture :
+
+```bash
+cd backend
+uv run pytest --cov=app --cov-report=term-missing -q
+```
 
 ---
 

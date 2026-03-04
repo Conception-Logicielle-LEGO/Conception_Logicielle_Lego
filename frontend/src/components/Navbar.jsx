@@ -20,7 +20,7 @@ export default function Navbar() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 font-bold text-red-600 text-xl">
-          <span className="text-2xl">🧱🐟</span>
+          <span className="text-2xl">🧱🔍​</span>
           LEGO Finder
         </Link>
 

@@ -356,9 +356,9 @@ def generate_embeddings_if_available(conn):
 
         print("\n📐 Génération des embeddings (fastembed détecté)...")
         generate_embeddings(conn)
-    except ImportError:
+    except ImportError as e:
         print(
-            "\n⚠️  fastembed non installé — embeddings ignorés.\n"
+            f"\n⚠️  Embeddings ignorés (ImportError: {e})\n"
             "   Pour les activer : uv add fastembed\n"
             "   puis relancer : python app/database/duckdb/generate_embeddings.py"
         )
@@ -374,8 +374,13 @@ def main(db_file, test_mode: bool = False):
     """
     label = "TEST" if test_mode else "PRODUCTION"
     print(f"INITIALISATION DE LA BASE DE DONNÉES LEGO [{label}]")
-    print(f"\nConnexion à DuckDB ({db_file})...")
 
+    db_path = Path(db_file)
+    if db_path.exists():
+        print(f"🗑️  Suppression de l'ancienne base ({db_file})...")
+        db_path.unlink()
+
+    print(f"\nConnexion à DuckDB ({db_file})...")
     conn = duckdb.connect(db_file)
 
     print("Installation de l'extension httpfs...")
@@ -399,10 +404,8 @@ def main(db_file, test_mode: bool = False):
 
 
 if __name__ == "__main__":
-    if not Path(DB_FILE).exists():
-        print(f"📦 Création de {DB_FILE}")
-        main(DB_FILE, test_mode=False)
+    print(f"📦 Création de {DB_FILE}")
+    main(DB_FILE, test_mode=False)
 
-    if not Path(TEST_DB_FILE).exists():
-        print(f"🧪 Création de {TEST_DB_FILE} (sous-ensemble de test)")
-        main(TEST_DB_FILE, test_mode=True)
+    print(f"🧪 Création de {TEST_DB_FILE} (sous-ensemble de test)")
+    main(TEST_DB_FILE, test_mode=True)
