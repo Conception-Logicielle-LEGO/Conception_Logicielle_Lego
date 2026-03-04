@@ -7,4 +7,4 @@ RUN uv sync
 
 COPY . .
 
-ENTRYPOINT ["docker_backend_bash.sh"] 
+ENTRYPOINT ["/bin/sh", "-c" , "uv run main.py"] 
