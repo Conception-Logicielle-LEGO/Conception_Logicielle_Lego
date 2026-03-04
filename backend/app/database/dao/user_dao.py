@@ -1,4 +1,9 @@
+import logging
+
 from app.business_object.user import User
+
+
+logger = logging.getLogger(__name__)
 
 
 class UserDAO:
@@ -44,8 +49,8 @@ class UserDAO:
                     salt=user.salt,
                     id_user=row["id_user"],
                 )
-        except Exception as e:
-            print(f"Erreur création utilisateur : {e}")
+        except Exception:
+            logger.exception("Erreur création utilisateur")
             return None
 
     def get_by_username(self, username: str) -> User | None:
@@ -86,8 +91,8 @@ class UserDAO:
             with self.conn.cursor() as cur:
                 cur.execute("DELETE FROM users WHERE id_user = %s", [id_user])
                 return True
-        except Exception as e:
-            print(f"Erreur suppression utilisateur : {e}")
+        except Exception:
+            logger.exception("Erreur suppression utilisateur")
             return False
 
     def update_user(self, update_username: bool, new_entry: str, id_user: int) -> bool:

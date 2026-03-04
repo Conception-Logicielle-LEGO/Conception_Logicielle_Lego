@@ -347,14 +347,14 @@ def load_test_data(conn):
 
 
 def generate_embeddings_if_available(conn):
-    """Génère les embeddings si sentence-transformers est installé.
+    """Génère les embeddings si fastembed est installé.
 
     Appelé à la fin de l'init — silencieusement ignoré si la dépendance manque.
     """
     try:
         from app.database.duckdb.generate_embeddings import generate_embeddings
 
-        print("\n📐 Génération des embeddings (sentence-transformers détecté)...")
+        print("\n📐 Génération des embeddings (fastembed détecté)...")
         generate_embeddings(conn)
     except ImportError:
         print(

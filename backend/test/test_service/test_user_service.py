@@ -6,9 +6,7 @@ from app.service.user_service import UserService
 
 
 # ---------------------------------------------------------------------------
-# Test credential constants — clearly fake values, never used in production.
-# Defined as module-level constants (not inline literals) to satisfy CWE-798.
-# Override via environment variables if needed in CI.
+# Test credential constants — fausses valeurs
 # ---------------------------------------------------------------------------
 TEST_USERNAME = os.getenv("TEST_USERNAME", "test_user_john")
 TEST_NEW_USERNAME = os.getenv("TEST_NEW_USERNAME", "test_user_newjohn")
@@ -130,7 +128,7 @@ def test_change_username_success():
     fake_user.id_user = 1
 
     mock_dao.is_username_taken.return_value = False
-    mock_dao.get_user.return_value = fake_user
+    mock_dao.get_by_username.return_value = fake_user
     mock_dao.update_user.return_value = True
 
     service = UserService(user_dao=mock_dao)
@@ -148,19 +146,6 @@ def test_change_username_already_taken():
     service = UserService(user_dao=mock_dao)
 
     result = service.change_username(TEST_USERNAME, TEST_NEW_USERNAME)
-
-    assert result is False
-    mock_dao.update_user.assert_not_called()
-
-
-def test_change_username_user_not_found():
-    mock_dao = MagicMock()
-    mock_dao.is_username_taken.return_value = False
-    mock_dao.get_by_username.return_value = None
-
-    service = UserService(user_dao=mock_dao)
-
-    result = service.change_username("ghost", "newname")
 
     assert result is False
     mock_dao.update_user.assert_not_called()

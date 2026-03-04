@@ -110,7 +110,6 @@ export default function AccountPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{user.username}</h1>
-          <p className="text-gray-500">{user.email}</p>
         </div>
       </div>
 

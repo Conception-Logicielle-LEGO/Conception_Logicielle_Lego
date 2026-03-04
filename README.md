@@ -39,6 +39,7 @@ cd ..
 
 # 4. Initialiser la base DuckDB — télécharge les données Rebrickable (~10 min)
 #    Requiert REBRICKABLE_API_KEY dans .env
+### Attention : prévoir 10 minutes
 cd backend
 python app/database/duckdb/init_db_lego.py
 cd ..

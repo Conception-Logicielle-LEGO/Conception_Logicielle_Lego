@@ -15,7 +15,7 @@ class EnvironmentPrinter:
     }
 
     @classmethod
-    def est_senssible(cls, variable_name: str) -> bool:
+    def est_sensible(cls, variable_name: str) -> bool:
         """
         Détermine si le nom d'une variable d'environnement
         contient un mot-clé sensible.
@@ -30,7 +30,7 @@ class EnvironmentPrinter:
         Les valeurs des variables sensibles sont masquées.
         """
         for key, value in os.environ.items():
-            if cls.est_senssible(key):
+            if cls.est_sensible(key):
                 print(f"{key}=****")
             else:
                 print(f"{key}={value}")

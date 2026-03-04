@@ -26,7 +26,7 @@ def test_create_salt_returns_hex_string():
 def test_validate_username_password_success():
     dao = MagicMock()
     fake_user = User(username="john", hashed_password="correcthash", salt="somesalt")
-    dao.get_user.return_value = fake_user
+    dao.get_by_username.return_value = fake_user
 
     with patch(
         "app.service.password_service.hash_password", return_value="correcthash"
@@ -38,7 +38,7 @@ def test_validate_username_password_success():
 
 def test_validate_username_password_user_not_found():
     dao = MagicMock()
-    dao.get_user.return_value = None
+    dao.get_by_username.return_value = None
 
     service = PasswordService(user_dao=dao)
     with pytest.raises(Exception, match="introuvable"):
@@ -48,7 +48,7 @@ def test_validate_username_password_user_not_found():
 def test_validate_username_password_wrong_password():
     dao = MagicMock()
     fake_user = User(username="john", hashed_password="correcthash", salt="somesalt")
-    dao.get_user.return_value = fake_user
+    dao.get_by_username.return_value = fake_user
 
     with patch("app.service.password_service.hash_password", return_value="wronghash"):
         service = PasswordService(user_dao=dao)

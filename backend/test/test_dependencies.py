@@ -47,7 +47,9 @@ class TestGetPg:
     def test_reconnects_when_ping_fails(self, monkeypatch):
         mock_old = MagicMock()
         mock_old.closed = False
-        mock_old.cursor.return_value.execute.side_effect = Exception("dead")
+        mock_old.cursor.return_value.__enter__.return_value.execute.side_effect = (
+            Exception("dead")
+        )
         monkeypatch.setattr(dep_module, "_pg_conn", mock_old)
 
         mock_new = MagicMock()

@@ -2,7 +2,11 @@ from fastapi import APIRouter, HTTPException
 
 from app.api.dependencies import DuckDep, PgDep
 from app.database.dao.whishlist_dao import WishlistDAO
-from app.dto import AddWishlistPartBody, AddWishlistSetBody, UpdateWishlistPartQtyBody
+from app.dto.wishlist_dto import (
+    AddWishlistPartBody,
+    AddWishlistSetBody,
+    UpdateWishlistPartQtyBody,
+)
 from app.service.wishlist_service import WishlistService
 
 

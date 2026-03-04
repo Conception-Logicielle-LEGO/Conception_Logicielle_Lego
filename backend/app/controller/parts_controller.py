@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.api.dependencies import DuckDep, PgDep
 from app.database.dao.user_parts_dao import UserPartsDAO
-from app.dto import AddPartBody, UpdatePartQtyBody
+from app.dto.parts_dto import AddPartBody, UpdatePartQtyBody
 from app.service.user_parts_service import UserPartsService
 
 

@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.api.dependencies import DuckDep, PgDep
 from app.database.dao.favorite_dao import FavoriteDAO
-from app.dto import AddFavoriteBody
+from app.dto.favorites_dto import AddFavoriteBody
 from app.service.favorite_service import FavoriteService
 
 
