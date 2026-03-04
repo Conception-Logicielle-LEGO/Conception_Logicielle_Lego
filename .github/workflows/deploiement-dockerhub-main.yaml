@@ -10,6 +10,12 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
       -
         name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -21,7 +27,7 @@ jobs:
         uses: docker/build-push-action@v3.1.1
         # voir : https://github.com/marketplace/actions/build-and-push-docker-images#customizing
         with:
-          context: "{{defaultContext}}" # Répertoire de contexte (racine du repo par défaut)
+          context: backend # Répertoire de contexte (racine du repo par défaut)
           file: ./backend/Dockerfile  # Chemin vers le Dockerfile
           push: true
           tags: marieckebv/backend:latest
@@ -29,7 +35,7 @@ jobs:
         name: Build and push frontend
         uses: docker/build-push-action@v3.1.1
         with:
-          context: "{{defaultContext}}"
+          context: frontend
           file: ./frontend/Dockerfile
           push: true
           tags: marieckebv/image-frontend:latest
