@@ -5,8 +5,6 @@ services:
     env_file:
       - ./backend/.env
     network_mode: host
-    volumes:
-      - ./backend/app/database/duckdb:/backend/app/database/duckdb
 
   frontend:
     build: ./frontend
@@ -14,5 +12,3 @@ services:
       - "5173:5173"
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app

@@ -27,19 +27,33 @@ cp .env.template .env
 - `POSTGRES_USER` et `POSTGRES_PASSWORD` — identifiants de votre instance PostgreSQL
 - `REBRICKABLE_API_KEY` — clé obtenue sur https://rebrickable.com → *Mon compte → Settings → API → Generate key*
 
-### Lancement avec Docker Compose en local
+### Étape 1 — Initialisation des bases de données (première fois uniquement)
 
 ```bash
-# Tout lancer
+./init.sh
+```
+
+Ce script gère automatiquement un port-forward temporaire pour initialiser PostgreSQL, puis le ferme. Il initialise aussi DuckDB (téléchargement des données Rebrickable).
+
+> ⚠️ Ne pas avoir de port-forward actif quand on lance `init.sh`.
+> ⚠️ Réinitialise complètement PostgreSQL — ne pas relancer si des données doivent être conservées.
+
+### Étape 2 — Port-forward PostgreSQL (terminal dédié, à laisser ouvert)
+
+```bash
+export POD=$(kubectl get pods --no-headers | grep -i postgres | awk '{print $1}' | head -n1)
+kubectl port-forward $POD 5432:5432
+```
+
+### Étape 3 — Lancer l'application avec Docker Compose
+
+```bash
 sudo docker compose build
 sudo docker compose up
-
-# Juste le backend + base de données
-sudo docker compose build backend
-sudo docker compose up backend
 ```
-le backend est disponible sur : http://localhost:8000
-l'application est disponible sur : http://localhost:5173
+
+- Frontend : http://localhost:5173
+- Backend API : http://localhost:8000
 
 ---
 

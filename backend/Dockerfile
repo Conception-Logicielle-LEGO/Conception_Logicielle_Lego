@@ -7,6 +7,4 @@ RUN uv sync
 
 COPY . .
 
-RUN chmod +x entrypoint.sh
-
-ENTRYPOINT ["./entrypoint.sh"]
+CMD ["uv", "run", "main.py"]
