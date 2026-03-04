@@ -3,7 +3,7 @@
 try:
     from fastembed import TextEmbedding
 
-    _st_model = TextEmbedding(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    _st_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
 except ImportError:  # pragma: no cover
     _st_model = None  # pragma: no cover
 

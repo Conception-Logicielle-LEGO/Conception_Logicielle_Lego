@@ -3,7 +3,7 @@ Génération des embeddings pour la recherche sémantique VSS dans DuckDB.
 
 Peut être appelé de deux façons :
   1. Directement : python app/database/duckdb/generate_embeddings.py
-  2. Via init_db_lego.py (appelé automatiquement si sentence-transformers est installé)
+  2. Via init_db_lego.py (appelé automatiquement si fastembed est installé)
 
 Textes encodés :
   - Sets  : "{name} {theme_name}"  → ex. "Millennium Falcon Star Wars"
@@ -26,7 +26,7 @@ from app.database.connexion_duckdb import DB_PATH
 
 
 BATCH_SIZE = 500
-MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+MODEL_NAME = "BAAI/bge-small-en-v1.5"
 DIMS = 384
 
 

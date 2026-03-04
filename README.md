@@ -21,13 +21,29 @@ Application web permettant de trouver les sets LEGO assemblables à partir des p
 # 1. Copier le fichier de configuration
 cd backend
 cp .env.template .env
+cd ..
 ```
 
 **Avant de continuer**, éditer `.env` et renseigner :
 - `POSTGRES_USER` et `POSTGRES_PASSWORD` — identifiants de votre instance PostgreSQL
 - `REBRICKABLE_API_KEY` — clé obtenue sur https://rebrickable.com → *Mon compte → Settings → API → Generate key*
 
+```bash
+# 2. Installer les dépendances backend et activer l'environnement virtuel
+cd backend
+uv sync
+source .venv/bin/activate
+cd ..
+
+# 3. Installer les dépendances frontend
+cd frontend
+npm install
+cd ..
+```
+
 ### Étape 1 — Initialisation des bases de données (première fois uniquement)
+
+**Attention :** L'exécution de ce script dure ~10 min
 
 ```bash
 ./init.sh
@@ -55,6 +71,12 @@ sudo docker compose up
 - Frontend : http://localhost:5173
 - Backend API : http://localhost:8000
 
+
+Pour fermer l'application et libérer les ports :
+
+```bash
+sudo docker compose down
+```
 ---
 
 ## Scénario d'utilisation
